@@ -1,23 +1,4 @@
 import { xeroClient } from "../clients/xero-client.js";
-import { XeroClientResponse } from "../types/tool-response.js";
-import { formatError } from "../helpers/format-error.js";
-
-async function fetchBudgetedRevenue(
-  startDate: string,
-  endDate: string,
-  trackingCategory?: string,
-) {
-  await xeroClient.authenticate();
-
-  const response = await xeroClient.accountingApi.getReportBudgetSummary(
-    xeroClient.tenantId,
-    startDate,
-    endDate,
-    trackingCategory,
-  );
-
-  return response.body.reports?.[0];
-}
 
 /**
  * Fetches budgeted revenue from Xero's BudgetSummary report.
@@ -30,23 +11,44 @@ export async function getBudgetedRevenue(
   startDate: string,
   endDate: string,
   trackingCategory?: string,
-): Promise<XeroClientResponse<{ month: string; budgeted_amount: number }[]>> {
+) {
   try {
-    const report = await fetchBudgetedRevenue(
-      startDate,
-      endDate,
-      trackingCategory,
+    const { accountingApi, tenantId } = xeroClient;
+
+    // Build query params
+    const params: any = {
+      fromDate: startDate,
+      toDate: endDate,
+    };
+    if (trackingCategory) {
+      params.trackingCategoryID = trackingCategory;
+    }
+
+    // Call Xero API
+    const response = await accountingApi.getReportBudgetSummary(
+      tenantId,
+      params.fromDate,
+      params.toDate,
+      params.trackingCategoryID,
     );
 
+    // Defensive: log and check response
+    if (!response || !response.body) {
+      return { error: "No response from Xero API.", result: [] };
+    }
+
+    const report = response.body.reports?.[0] as {
+      rows: any[];
+      columns: any[];
+    };
     if (
       !report ||
       !Array.isArray(report.rows) ||
       !Array.isArray(report.columns)
     ) {
       return {
-        result: [],
-        isError: true,
         error: "No budget summary report data found or invalid format.",
+        result: [],
       };
     }
 
@@ -81,16 +83,13 @@ export async function getBudgetedRevenue(
       }
     }
 
+    // Always return a serializable object
+    return { error: null, result: revenueRows };
+  } catch (err: any) {
+    // Defensive: always return a string error
     return {
-      result: revenueRows,
-      isError: false,
-      error: null,
-    };
-  } catch (error) {
-    return {
+      error: err && err.message ? String(err.message) : String(err),
       result: [],
-      isError: true,
-      error: formatError(error),
     };
   }
 }
