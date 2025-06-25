@@ -17,7 +17,7 @@ function formatXeroContactData(details: {
 }
 
 // Utility to ensure all available fields are included in XeroContactData
-function buildXeroContactData(source: any, fallback: any = {}) {
+function buildXeroContactData(source: any = {}, fallback: any = {}) {
   return {
     name: source?.name ?? fallback?.name ?? null,
     email: source?.email ?? fallback?.email ?? null,
@@ -25,16 +25,12 @@ function buildXeroContactData(source: any, fallback: any = {}) {
     contactPerson: source?.contactPerson ?? fallback?.contactPerson ?? null,
     address: source?.address ?? fallback?.address ?? null,
     contactID: source?.contactID ?? fallback?.contactID ?? null,
-    // Add any other fields you expect here
   };
 }
 
 const CreateContactTool = CreateXeroTool(
   "create-contact",
-  "Create a contact in Xero.\
-  When a contact is created, a deep link to the contact in Xero is returned. \
-  This deep link can be used to view the contact in Xero directly. \
-  This link should be displayed to the user.",
+  "Create a contact in Xero.\nWhen a contact is created, a deep link to the contact in Xero is returned. This deep link can be used to view the contact in Xero directly. This link should be displayed to the user.",
   {
     name: z.string(),
     email: z.string().email().optional(),
@@ -193,6 +189,12 @@ const CreateContactTool = CreateXeroTool(
             text: formatXeroContactData({ name, email, phone }),
           },
         ],
+        message: `Error creating contact: ${err.message}`,
+        title: "Contact Creation Failed",
+        description: "There was an error creating the contact in Xero.",
+        type: "DashboardContactData",
+        XeroContactData: buildXeroContactData({ name, email, phone }),
+        success: false,
       };
     }
   },
