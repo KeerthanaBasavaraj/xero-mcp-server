@@ -14,23 +14,70 @@ const CreateContactTool = CreateXeroTool(
     name: z.string(),
     email: z.string().email().optional(),
     phone: z.string().optional(),
+    confirmation: z.any().optional(),
   },
-  async ({ name, email, phone }) => {
+  async ({ name, email, phone, confirmation }) => {
     try {
-      const response = await createXeroContact(name, email, phone);
-      if (response.isError) {
+      const response = await createXeroContact(
+        { name, email, phone, type: "XeroContactData" },
+        confirmation,
+      );
+
+      // Handle missing fields
+      if (
+        response.message?.startsWith(
+          "Please provide the following required field",
+        )
+      ) {
         return {
           content: [
             {
               type: "text" as const,
-              text: `Error creating contact: ${response.error}`,
+              text: response.message,
             },
           ],
         };
       }
 
-      const contact = response.result;
+      // Handle confirmation prompt
+      if (response.message?.includes("Can you confirm if I should proceed")) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: response.message,
+            },
+          ],
+        };
+      }
 
+      // Handle cancellation (if user says no/cancel, you should handle this in the client)
+      if (response.message?.includes("the contact was not created")) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text: response.message,
+            },
+          ],
+        };
+      }
+
+      // Handle error
+      if (response.isError) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text:
+                response.message || `Error creating contact: ${response.error}`,
+            },
+          ],
+        };
+      }
+
+      // Success: show contact and deep link
+      const contact = response.result as any;
       const deepLink = contact.contactID
         ? await getDeepLink(DeepLinkType.CONTACT, contact.contactID)
         : null;
