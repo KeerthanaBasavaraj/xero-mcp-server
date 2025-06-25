@@ -29,6 +29,16 @@ function formatContactDetails(details: XeroContactDetails): string {
   ].join("\n");
 }
 
+function buildXeroContactData(input: XeroContactDetails) {
+  // Only include fields that are not undefined or null
+  return Object.fromEntries(
+    Object.entries(input).filter(
+      ([key, value]) =>
+        ["name", "email", "phone"].includes(key) && value !== undefined && value !== null,
+    ),
+  );
+}
+
 export async function createXeroContact(
   input: XeroContactDetails,
   confirmation?: boolean,
@@ -41,11 +51,7 @@ export async function createXeroContact(
     return {
       result: {
         type: "ChatContactData",
-        XeroContactData: {
-          name: input.name ?? undefined,
-          email: input.email ?? undefined,
-          ...input, // include any other fields provided
-        },
+        XeroContactData: buildXeroContactData(input),
       },
       isError: false,
       error: null,
@@ -58,7 +64,7 @@ export async function createXeroContact(
     return {
       result: {
         type: "ChatContactData",
-        XeroContactData: { ...input },
+        XeroContactData: buildXeroContactData(input), // <-- use the helper here
       },
       isError: false,
       error: null,
