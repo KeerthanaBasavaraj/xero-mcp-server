@@ -5,7 +5,11 @@ import { ensureError } from "../../helpers/ensure-error.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 // Helper to format contact details in XeroContactData style
-function formatXeroContactData(details: { name?: string; email?: string; phone?: string }) {
+function formatXeroContactData(details: {
+  name?: string;
+  email?: string;
+  phone?: string;
+}) {
   return [
     `type: XeroContactData`,
     `name: ${details.name ?? "(not provided)"}`,
@@ -30,14 +34,16 @@ const CreateContactTool = CreateXeroTool(
     try {
       const response = await createXeroContact(
         { name, email, phone },
-        confirmation
+        confirmation,
       );
 
-      const { type, XeroContactData } = response.result;
+      const { XeroContactData } = response.result;
 
       // Handle missing fields
       if (
-        response.message?.startsWith("Please provide the following required field")
+        response.message?.startsWith(
+          "Please provide the following required field",
+        )
       ) {
         return {
           content: [
@@ -95,7 +101,8 @@ const CreateContactTool = CreateXeroTool(
           content: [
             {
               type: "text" as const,
-              text: response.message || `Error creating contact: ${response.error}`,
+              text:
+                response.message || `Error creating contact: ${response.error}`,
             },
             {
               type: "text" as const,
@@ -144,7 +151,7 @@ const CreateContactTool = CreateXeroTool(
         ],
       };
     }
-  }
+  },
 );
 
 export default CreateContactTool;
