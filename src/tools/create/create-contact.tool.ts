@@ -14,20 +14,18 @@ const CreateContactTool = CreateXeroTool(
     name: z.string(),
     email: z.string().email().optional(),
     phone: z.string().optional(),
-    confirmation: z.any().optional(),
+    confirmation: z.boolean().optional(),
   },
   async ({ name, email, phone, confirmation }) => {
     try {
       const response = await createXeroContact(
         { name, email, phone, type: "XeroContactData" },
-        confirmation,
+        confirmation
       );
 
       // Handle missing fields
       if (
-        response.message?.startsWith(
-          "Please provide the following required field",
-        )
+        response.message?.startsWith("Please provide the following required field")
       ) {
         return {
           content: [
@@ -39,13 +37,17 @@ const CreateContactTool = CreateXeroTool(
         };
       }
 
-      // Handle confirmation prompt
-      if (response.message?.includes("Can you confirm if I should proceed")) {
+      // Always ask for confirmation if not confirmed yet
+      if (!confirmation) {
         return {
           content: [
             {
               type: "text" as const,
-              text: response.message,
+              text:
+                response.message ||
+                `You are about to create a new Xero contact with the following details:\n\n` +
+                  `Name: ${name}\nEmail: ${email}\nPhone: ${phone ?? "(not provided)"}\n\n` +
+                  `Can you confirm if I should proceed with creating this contact in Xero? (yes/no)`,
             },
           ],
         };
@@ -69,8 +71,7 @@ const CreateContactTool = CreateXeroTool(
           content: [
             {
               type: "text" as const,
-              text:
-                response.message || `Error creating contact: ${response.error}`,
+              text: response.message || `Error creating contact: ${response.error}`,
             },
           ],
         };
@@ -107,7 +108,7 @@ const CreateContactTool = CreateXeroTool(
         ],
       };
     }
-  },
+  }
 );
 
 export default CreateContactTool;
