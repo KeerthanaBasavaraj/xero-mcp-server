@@ -30,13 +30,23 @@ function formatContactDetails(details: XeroContactDetails): string {
 }
 
 function buildXeroContactData(input: XeroContactDetails) {
-  // Only include fields that are not undefined or null
-  return Object.fromEntries(
-    Object.entries(input).filter(
-      ([key, value]) =>
-        ["name", "email", "phone"].includes(key) && value !== undefined && value !== null,
-    ),
-  );
+  // Only include name, email, phone if present
+  return {
+    ...(input.name !== undefined ? { name: input.name } : {}),
+    ...(input.email !== undefined ? { email: input.email } : {}),
+    ...(input.phone !== undefined ? { phone: input.phone } : {}),
+  };
+}
+
+// Normalize Xero API response to { name, email, phone }
+function normalizeCreatedContact(contact: any) {
+  return {
+    name: contact.name ?? null,
+    email: contact.emailAddress ?? null,
+    phone: Array.isArray(contact.phones) && contact.phones.length > 0
+      ? contact.phones[0].phoneNumber
+      : null,
+  };
 }
 
 export async function createXeroContact(
@@ -64,7 +74,7 @@ export async function createXeroContact(
     return {
       result: {
         type: "ChatContactData",
-        XeroContactData: buildXeroContactData(input), // <-- use the helper here
+        XeroContactData: buildXeroContactData(input),
       },
       isError: false,
       error: null,
@@ -108,21 +118,17 @@ export async function createXeroContact(
     return {
       result: {
         type: "DashboardContactData",
-        XeroContactData: createdContact,
+        XeroContactData: normalizeCreatedContact(createdContact),
       },
       isError: false,
       error: null,
-      message: `Contact created successfully in Xero:\n\n${formatContactDetails(createdContact)}`,
+      message: `Contact created successfully in Xero:\n\n${formatContactDetails(normalizeCreatedContact(createdContact))}`,
     };
   } catch (error) {
     return {
       result: {
         type: "ChatContactData",
-        XeroContactData: Object.fromEntries(
-          Object.entries(input).filter(
-            ([, v]) => v !== undefined && v !== null,
-          ),
-        ),
+        XeroContactData: buildXeroContactData(input),
       },
       isError: true,
       error: formatError(error),
