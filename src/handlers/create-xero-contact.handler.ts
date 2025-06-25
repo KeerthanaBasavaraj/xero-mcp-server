@@ -43,9 +43,10 @@ function normalizeCreatedContact(contact: any) {
   return {
     name: contact.name ?? null,
     email: contact.emailAddress ?? null,
-    phone: Array.isArray(contact.phones) && contact.phones.length > 0
-      ? contact.phones[0].phoneNumber
-      : null,
+    phone:
+      Array.isArray(contact.phones) && contact.phones.length > 0
+        ? contact.phones[0].phoneNumber
+        : null,
   };
 }
 
@@ -53,11 +54,8 @@ export async function createXeroContact(
   input: XeroContactDetails,
   confirmation?: boolean,
 ): Promise<XeroClientResponse<XeroContactDetails | Contact>> {
-  // Step 1: Validate required fields
-  if (!input.name || !input.email) {
-    const missing = [];
-    if (!input.name) missing.push("name");
-    if (!input.email) missing.push("email");
+  // Step 1: Validate required fields separately
+  if (!input.name) {
     return {
       result: {
         type: "ChatContactData",
@@ -65,7 +63,18 @@ export async function createXeroContact(
       },
       isError: false,
       error: null,
-      message: `Please provide the following required field(s): ${missing.join(", ")}.`,
+      message: `Please provide the name for the new contact.`,
+    };
+  }
+  if (!input.email) {
+    return {
+      result: {
+        type: "ChatContactData",
+        XeroContactData: buildXeroContactData(input),
+      },
+      isError: false,
+      error: null,
+      message: `Please provide the email address for the contact '${input.name}'.`,
     };
   }
 
