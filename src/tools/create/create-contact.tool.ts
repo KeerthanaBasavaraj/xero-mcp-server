@@ -61,7 +61,10 @@ const CreateContactTool = CreateXeroTool(
           title: "Confirm Contact Creation",
           description: "Confirmation required before creating contact in Xero.",
           type: "ChatContactData",
-          XeroContactData: buildXeroContactData({ name, email, phone }),
+          XeroContactData: buildXeroContactData(
+            XeroContactData, // existing fields from handler
+            { name, email, phone }, // new/overridden fields from user input
+          ),
           success: true,
         };
       }
