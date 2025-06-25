@@ -16,6 +16,19 @@ function formatXeroContactData(details: {
   ].join("\n");
 }
 
+// Utility to ensure all available fields are included in XeroContactData
+function buildXeroContactData(source: any, fallback: any = {}) {
+  return {
+    name: source?.name ?? fallback?.name ?? null,
+    email: source?.email ?? fallback?.email ?? null,
+    phone: source?.phone ?? fallback?.phone ?? null,
+    contactPerson: source?.contactPerson ?? fallback?.contactPerson ?? null,
+    address: source?.address ?? fallback?.address ?? null,
+    contactID: source?.contactID ?? fallback?.contactID ?? null,
+    // Add any other fields you expect here
+  };
+}
+
 const CreateContactTool = CreateXeroTool(
   "create-contact",
   "Create a contact in Xero.\
@@ -37,6 +50,26 @@ const CreateContactTool = CreateXeroTool(
 
       const { XeroContactData } = response.result;
 
+      // Always ask for confirmation if not confirmed yet
+      if (!confirmation) {
+        return {
+          content: [
+            {
+              type: "text" as const,
+              text:
+                response.message ||
+                `You are about to create a new Xero contact. Can you confirm if I should proceed with creating this contact in Xero? (yes/no)`,
+            },
+          ],
+          message: `You are about to create a new Xero contact. Can you confirm if I should proceed with creating this contact in Xero? (yes/no)`,
+          title: "Confirm Contact Creation",
+          description: "Confirmation required before creating contact in Xero.",
+          type: "ChatContactData",
+          XeroContactData: buildXeroContactData({ name, email, phone }),
+          success: true,
+        };
+      }
+
       // Handle missing fields
       if (
         response.message?.startsWith(
@@ -54,26 +87,16 @@ const CreateContactTool = CreateXeroTool(
               text: formatXeroContactData(XeroContactData),
             },
           ],
-        };
-      }
-
-      // Always ask for confirmation if not confirmed yet
-      if (!confirmation) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text:
-                response.message ||
-                `You are about to create a new Xero contact. Can you confirm if I should proceed with creating this contact in Xero? (yes/no)`,
-            },
-          ],
-          message: `You are about to create a new Xero contact. Can you confirm if I should proceed with creating this contact in Xero? (yes/no)`,
-          title: "Confirm Contact Creation",
-          description: "Confirmation required before creating contact in Xero.",
+          message: response.message,
+          title: "Missing Required Fields",
+          description: "Some required fields are missing for contact creation.",
           type: "ChatContactData",
-          XeroContactData: XeroContactData,
-          success: true,
+          XeroContactData: buildXeroContactData(XeroContactData, {
+            name,
+            email,
+            phone,
+          }),
+          success: false,
         };
       }
 
@@ -90,6 +113,16 @@ const CreateContactTool = CreateXeroTool(
               text: formatXeroContactData(XeroContactData),
             },
           ],
+          message: response.message,
+          title: "Contact Creation Cancelled",
+          description: "User cancelled contact creation.",
+          type: "ChatContactData",
+          XeroContactData: buildXeroContactData(XeroContactData, {
+            name,
+            email,
+            phone,
+          }),
+          success: false,
         };
       }
 
@@ -107,11 +140,22 @@ const CreateContactTool = CreateXeroTool(
               text: formatXeroContactData(XeroContactData),
             },
           ],
+          message:
+            response.message || `Error creating contact: ${response.error}`,
+          title: "Contact Creation Failed",
+          description: "There was an error creating the contact in Xero.",
+          type: "DashboardContactData",
+          XeroContactData: buildXeroContactData(XeroContactData, {
+            name,
+            email,
+            phone,
+          }),
+          success: false,
         };
       }
 
       // Success: show contact and deep link, plus XeroContactData
-      const contact = XeroContactData as any;
+      const contact = buildXeroContactData(XeroContactData);
       const deepLink = contact.contactID
         ? await getDeepLink(DeepLinkType.CONTACT, contact.contactID)
         : null;
