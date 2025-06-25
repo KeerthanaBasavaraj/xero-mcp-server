@@ -29,9 +29,11 @@ const CreateContactTool = CreateXeroTool(
   async ({ name, email, phone, confirmation }) => {
     try {
       const response = await createXeroContact(
-        { name, email, phone, type: "XeroContactData" },
+        { name, email, phone },
         confirmation
       );
+
+      const { type, XeroContactData } = response.result;
 
       // Handle missing fields
       if (
@@ -45,7 +47,7 @@ const CreateContactTool = CreateXeroTool(
             },
             {
               type: "text" as const,
-              text: formatXeroContactData({ name, email, phone }),
+              text: formatXeroContactData(XeroContactData),
             },
           ],
         };
@@ -60,12 +62,12 @@ const CreateContactTool = CreateXeroTool(
               text:
                 response.message ||
                 `You are about to create a new Xero contact with the following details:\n\n` +
-                  formatXeroContactData({ name, email, phone }) +
+                  formatXeroContactData(XeroContactData) +
                   `\n\nCan you confirm if I should proceed with creating this contact in Xero? (yes/no)`,
             },
             {
               type: "text" as const,
-              text: formatXeroContactData({ name, email, phone }),
+              text: formatXeroContactData(XeroContactData),
             },
           ],
         };
@@ -81,7 +83,7 @@ const CreateContactTool = CreateXeroTool(
             },
             {
               type: "text" as const,
-              text: formatXeroContactData({ name, email, phone }),
+              text: formatXeroContactData(XeroContactData),
             },
           ],
         };
@@ -97,14 +99,14 @@ const CreateContactTool = CreateXeroTool(
             },
             {
               type: "text" as const,
-              text: formatXeroContactData({ name, email, phone }),
+              text: formatXeroContactData(XeroContactData),
             },
           ],
         };
       }
 
       // Success: show contact and deep link, plus XeroContactData
-      const contact = response.result as any;
+      const contact = XeroContactData as any;
       const deepLink = contact.contactID
         ? await getDeepLink(DeepLinkType.CONTACT, contact.contactID)
         : null;
