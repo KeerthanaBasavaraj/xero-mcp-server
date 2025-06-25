@@ -65,15 +65,15 @@ const CreateContactTool = CreateXeroTool(
               type: "text" as const,
               text:
                 response.message ||
-                `You are about to create a new Xero contact with the following details:\n\n` +
-                  formatXeroContactData(XeroContactData) +
-                  `\n\nCan you confirm if I should proceed with creating this contact in Xero? (yes/no)`,
-            },
-            {
-              type: "text" as const,
-              text: formatXeroContactData(XeroContactData),
+                `You are about to create a new Xero contact. Can you confirm if I should proceed with creating this contact in Xero? (yes/no)`,
             },
           ],
+          message: `You are about to create a new Xero contact. Can you confirm if I should proceed with creating this contact in Xero? (yes/no)`,
+          title: "Confirm Contact Creation",
+          description: "Confirmation required before creating contact in Xero.",
+          type: "ChatContactData",
+          XeroContactData: XeroContactData,
+          success: true,
         };
       }
 
@@ -127,11 +127,13 @@ const CreateContactTool = CreateXeroTool(
               .filter(Boolean)
               .join("\n"),
           },
-          {
-            type: "text" as const,
-            text: formatXeroContactData(contact),
-          },
         ],
+        message: `Contact created successfully in Xero.`,
+        title: "Contact Created",
+        description: "The contact was created successfully in Xero.",
+        type: "DashboardContactData",
+        XeroContactData: contact,
+        success: true,
       };
     } catch (error) {
       const err = ensureError(error);
