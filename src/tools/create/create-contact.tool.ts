@@ -11,10 +11,8 @@ function formatXeroContactData(details: {
   phone?: string;
 }) {
   return [
-    `type: XeroContactData`,
     `name: ${details.name ?? "(not provided)"}`,
     `email: ${details.email ?? "(not provided)"}`,
-    `phone: ${details.phone ?? "(not provided)"}`,
   ].join("\n");
 }
 

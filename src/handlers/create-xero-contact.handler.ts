@@ -41,7 +41,11 @@ export async function createXeroContact(
     return {
       result: {
         type: "ChatContactData",
-        XeroContactData: { ...input },
+        XeroContactData: {
+          name: input.name ?? undefined,
+          email: input.email ?? undefined,
+          ...input, // include any other fields provided
+        },
       },
       isError: false,
       error: null,
@@ -102,19 +106,21 @@ export async function createXeroContact(
       },
       isError: false,
       error: null,
-      message:
-        `Contact created successfully in Xero:\n\n${formatContactDetails(createdContact)}`,
+      message: `Contact created successfully in Xero:\n\n${formatContactDetails(createdContact)}`,
     };
   } catch (error) {
     return {
       result: {
         type: "ChatContactData",
-        XeroContactData: { ...input },
+        XeroContactData: Object.fromEntries(
+          Object.entries(input).filter(
+            ([, v]) => v !== undefined && v !== null,
+          ),
+        ),
       },
       isError: true,
       error: formatError(error),
-      message:
-        `There was an error creating the contact: ${formatError(error)}\nWould you like to try again?`,
+      message: `There was an error creating the contact: ${formatError(error)}\nWould you like to try again?`,
     };
   }
 }
