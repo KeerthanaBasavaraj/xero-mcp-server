@@ -14,7 +14,7 @@ interface InvoiceLineItem {
   tracking?: LineItemTracking[];
 }
 
-async function getInvoice(invoiceId: string): Promise<Invoice | undefined> {
+export async function getInvoice(invoiceId: string): Promise<Invoice | undefined> {
   await xeroClient.authenticate();
 
   // First, get the current invoice to check its status
@@ -35,6 +35,7 @@ async function updateInvoice(
   dueDate?: string,
   date?: string,
   contactId?: string,
+  status?: string,
 ): Promise<Invoice | undefined> {
   const invoice: Invoice = {
     lineItems: lineItems,
@@ -42,6 +43,7 @@ async function updateInvoice(
     dueDate: dueDate,
     date: date,
     contact: contactId ? { contactID: contactId } : undefined,
+    status: status as Invoice.StatusEnum | undefined,
   };
 
   const response = await xeroClient.accountingApi.updateInvoice(
@@ -68,19 +70,52 @@ export async function updateXeroInvoice(
   dueDate?: string,
   date?: string,
   contactId?: string,
+  status?: string,
 ): Promise<XeroClientResponse<Invoice>> {
   try {
     const existingInvoice = await getInvoice(invoiceId);
-
     const invoiceStatus = existingInvoice?.status;
 
-    // Only allow updates to DRAFT invoices
-    if (invoiceStatus !== Invoice.StatusEnum.DRAFT) {
+    // Handle status update (delete/void)
+    if (status === "DELETED") {
+      if (
+        invoiceStatus === Invoice.StatusEnum.DRAFT ||
+        invoiceStatus === Invoice.StatusEnum.SUBMITTED
+      ) {
+        // Allow deletion
+      } else {
+        return {
+          result: null,
+          isError: true,
+          error: `Invoice cannot be deleted. Only DRAFT or SUBMITTED invoices can be deleted. Current status: ${invoiceStatus}`,
+        };
+      }
+    } else if (status === "VOIDED") {
+      if (invoiceStatus === Invoice.StatusEnum.AUTHORISED) {
+        // Allow voiding
+      } else {
+        return {
+          result: null,
+          isError: true,
+          error: `Invoice cannot be voided. Only AUTHORISED invoices can be voided. Current status: ${invoiceStatus}`,
+        };
+      }
+    } else if (status) {
+      // Forbid setting status to DELETED/VOIDED in other cases
       return {
         result: null,
         isError: true,
-        error: `Cannot update invoice because it is not a draft. Current status: ${invoiceStatus}`,
+        error: `Status update not allowed. Only DELETED (for DRAFT/SUBMITTED) or VOIDED (for AUTHORISED) are supported for status changes.`,
       };
+    } else {
+      // Only allow updates to DRAFT invoices
+      if (invoiceStatus !== Invoice.StatusEnum.DRAFT) {
+        return {
+          result: null,
+          isError: true,
+          error: `Cannot update invoice because it is not a draft. Current status: ${invoiceStatus}`,
+        };
+      }
     }
 
     const updatedInvoice = await updateInvoice(
@@ -90,6 +125,7 @@ export async function updateXeroInvoice(
       dueDate,
       date,
       contactId,
+      status,
     );
 
     if (!updatedInvoice) {
