@@ -7,7 +7,6 @@ import { ListTools } from "./list/index.js";
 import { UpdateTools } from "./update/index.js";
 
 export function ToolFactory(server: McpServer) {
-
   DeleteTools.map((tool) => tool()).forEach((tool) =>
     server.tool(tool.name, tool.description, tool.schema, tool.handler),
   );
