@@ -75,10 +75,10 @@ const PeriodicActualVsBudgetTool = CreateXeroTool(
       }
     }
 
-    // Fetch actuals (P&L) - for multi-period, only pass fromDate and periods (not toDate)
+    // Fetch actuals (P&L)
     const actualResp = await listXeroProfitAndLoss(
       fromDate,
-      periods && periods > 1 ? undefined : toDate,
+      toDate,
       periods,
       timeframe,
       args.standardLayout,
@@ -114,19 +114,63 @@ const PeriodicActualVsBudgetTool = CreateXeroTool(
     }
     const budgetReport = budgetResp.result?.[0];
 
-    // Instead of extracting and matching by metric, just return the full report JSONs for actual and budgeted
+    // --- Extract and align periods for the specified metric ---
+    const metricName = (args.metric || "Net Profit").toLowerCase();
+
+    // Helper to extract period labels from columns
+    function getPeriodLabels(report: any): string[] {
+      if (!report?.columns) return [];
+      // Usually first column is 'Description', skip it
+      return report.columns.slice(1).map((col: any) => col.title);
+    }
+
+    // Helper to extract metric row from report
+    function getMetricRow(report: any, metric: string): any | undefined {
+      if (!report?.rows) return undefined;
+      // Find row where first cell (Description) matches metric (case-insensitive)
+      return report.rows.find((row: any) => {
+        const desc = row.cells?.[0]?.value?.toLowerCase?.();
+        return desc === metric;
+      });
+    }
+
+    // Get period labels
+    const actualPeriods = getPeriodLabels(actualReport);
+    const budgetPeriods = getPeriodLabels(budgetReport);
+    // Union of all periods (in order of actual, then any extra from budget)
+    const allPeriods = Array.from(new Set([...actualPeriods, ...budgetPeriods]));
+
+    // Get metric rows
+    const actualMetricRow = getMetricRow(actualReport, metricName);
+    const budgetMetricRow = getMetricRow(budgetReport, metricName);
+
+    // Helper to get values for each period from a row
+    function getValues(row: any): (number|null)[] {
+      if (!row?.cells) return [];
+      // Skip first cell (Description)
+      return row.cells.slice(1).map((cell: any) => {
+        const v = cell.value;
+        if (v == null || v === "") return null;
+        const n = Number(v.toString().replace(/[^\d.-]/g, ""));
+        return isNaN(n) ? null : n;
+      });
+    }
+
+    const actualValues = getValues(actualMetricRow);
+    const budgetValues = getValues(budgetMetricRow);
+
+    // Build result array
+    const result = allPeriods.map((period, idx) => ({
+      period,
+      actual: idx < actualValues.length ? actualValues[idx] : null,
+      budgeted: idx < budgetValues.length ? budgetValues[idx] : null,
+    }));
+
     return {
       content: [
         {
           type: "text" as const,
-          text: JSON.stringify(
-            {
-              actual: actualReport,
-              budgeted: budgetReport,
-            },
-            null,
-            2,
-          ),
+          text: JSON.stringify(result, null, 2),
         },
       ],
     };
