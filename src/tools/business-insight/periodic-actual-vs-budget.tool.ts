@@ -138,14 +138,16 @@ const PeriodicActualVsBudgetTool = CreateXeroTool(
     const actualPeriods = getPeriodLabels(actualReport);
     const budgetPeriods = getPeriodLabels(budgetReport);
     // Union of all periods (in order of actual, then any extra from budget)
-    const allPeriods = Array.from(new Set([...actualPeriods, ...budgetPeriods]));
+    const allPeriods = Array.from(
+      new Set([...actualPeriods, ...budgetPeriods]),
+    );
 
     // Get metric rows
     const actualMetricRow = getMetricRow(actualReport, metricName);
     const budgetMetricRow = getMetricRow(budgetReport, metricName);
 
     // Helper to get values for each period from a row
-    function getValues(row: any): (number|null)[] {
+    function getValues(row: any): (number | null)[] {
       if (!row?.cells) return [];
       // Skip first cell (Description)
       return row.cells.slice(1).map((cell: any) => {
