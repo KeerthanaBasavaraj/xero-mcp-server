@@ -75,10 +75,10 @@ const PeriodicActualVsBudgetTool = CreateXeroTool(
       }
     }
 
-    // Fetch actuals (P&L)
+    // Fetch actuals (P&L) - for multi-period, only pass fromDate and periods (not toDate)
     const actualResp = await listXeroProfitAndLoss(
       fromDate,
-      toDate,
+      periods && periods > 1 ? undefined : toDate,
       periods,
       timeframe,
       args.standardLayout,
