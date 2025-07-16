@@ -10,12 +10,11 @@ import { listXeroQuotes } from "../../handlers/list-xero-quotes.handler.js";
 
 export default CreateXeroTool(
   "generateBusinessInsightReportRaw",
-  "Fetches all raw data needed for a business insight report for a selected tenant and month. Returns profit and loss, previous profit and loss, budget summary, contacts, invoices, aged receivables, items, and quotes.",
+  "Fetches all raw data needed for a business insight report for a selected month. Returns profit and loss, previous profit and loss, budget summary, contacts, invoices, aged receivables, items, and quotes.",
   {
-    tenantId: z.string().describe("Xero tenant ID"),
     month: z.string().describe("Month in YYYY-MM format"),
   },
-  async ({ tenantId, month }: { tenantId: string; month: string }) => {
+  async ({ month }: { month: string }) => {
     // Calculate date ranges
     const [year, monthNum] = month.split("-").map(Number);
     const startDate = `${year}-${String(monthNum).padStart(2, "0")}-01`;
