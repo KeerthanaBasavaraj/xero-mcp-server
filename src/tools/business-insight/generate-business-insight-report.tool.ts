@@ -4,6 +4,7 @@ import { listXeroProfitAndLoss } from "../../handlers/list-xero-profit-and-loss.
 import { listXeroBudgetSummary } from "../../handlers/list-xero-budget-summary.handler.js";
 import { listXeroAgedReceivables } from "../../handlers/list-aged-receivables.handler.js";
 import { listXeroContacts } from "../../handlers/list-xero-contacts.handler.js";
+import { xeroClient } from "../../clients/xero-client.js";
 // TODO: Import or implement handlers for client metrics, AR days, etc.
 
 /**
@@ -12,15 +13,13 @@ import { listXeroContacts } from "../../handlers/list-xero-contacts.handler.js";
  */
 const GenerateBusinessInsightReportTool = CreateXeroTool(
   "generate-business-insight-report",
-  "Generates a comprehensive business insights report for a selected tenant and month, covering financial and client metrics, charts, and tables.",
+  "Generates a comprehensive business insights report for a selected month, covering financial and client metrics, charts, and tables.",
   {
-    tenantId: z
-      .string()
-      .describe("The Xero tenant/org ID to generate the report for."),
     month: z.string().describe("The month to report on, in YYYY-MM format."),
   },
   async (args) => {
     const { month } = args;
+    await xeroClient.authenticate();
     // Parse month boundaries
     const [year, m] = month.split("-").map(Number);
     const fromDate = `${year}-${String(m).padStart(2, "0")}-01`;
