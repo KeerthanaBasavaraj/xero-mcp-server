@@ -4,7 +4,7 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const CreateAttachmentTool = CreateXeroTool(
   "create-attachment",
-  "Upload an attachment to a Xero entity (invoice, contact, credit note, etc.). Only supported file types: PDF, JPG, JPEG, PNG, DOC, DOCX, XLS, XLSX, CSV, TIFF, GIF, XML.",
+  "Upload an attachment to a Xero entity (invoice, contact, credit note, etc.).\n\nRequired arguments:\n- entityType: The type of entity to upload the attachment to (e.g., invoices, contacts, creditnotes, etc.).\n- entityId: The ID of the entity to upload the attachment to.\n- fileUrl: The public URL of the file to upload.\n\nOptional arguments:\n- fileName: The file name to use for the attachment (if not provided, will use the name from the URL).\n\nOnly supported file types: PDF, JPG, JPEG, PNG, DOC, DOCX, XLS, XLSX, CSV, TIFF, GIF, XML.",
   {
     entityType: z
       .enum([

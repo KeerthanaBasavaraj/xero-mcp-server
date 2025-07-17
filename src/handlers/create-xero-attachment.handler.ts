@@ -1,4 +1,5 @@
 import { xeroClient } from "../clients/xero-client.js";
+import { getClientHeaders } from "../helpers/get-client-headers.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { Attachment } from "xero-node";
@@ -27,6 +28,7 @@ export async function createXeroAttachment(
   fileName?: string,
 ): Promise<XeroClientResponse<Attachment | null>> {
   try {
+    await xeroClient.authenticate();
     console.log(`Starting attachment upload for ${entityType} ${entityId}`);
     // Download file
     console.log(`Downloading file from: ${fileUrl}`);
@@ -61,6 +63,9 @@ export async function createXeroAttachment(
             entityId,
             finalFileName,
             Buffer.from(response.data),
+            undefined,
+            undefined,
+            getClientHeaders(),
           );
         break;
       case "contacts":
@@ -70,6 +75,8 @@ export async function createXeroAttachment(
             entityId,
             finalFileName,
             Buffer.from(response.data),
+            undefined,
+            getClientHeaders(),
           );
         break;
       case "creditnotes":
@@ -79,6 +86,9 @@ export async function createXeroAttachment(
             entityId,
             finalFileName,
             Buffer.from(response.data),
+            undefined,
+            undefined,
+            getClientHeaders(),
           );
         break;
       case "banktransactions":
@@ -88,6 +98,8 @@ export async function createXeroAttachment(
             entityId,
             finalFileName,
             Buffer.from(response.data),
+            undefined,
+            getClientHeaders(),
           );
         break;
       case "manualjournals":
@@ -97,6 +109,8 @@ export async function createXeroAttachment(
             entityId,
             finalFileName,
             Buffer.from(response.data),
+            undefined,
+            getClientHeaders(),
           );
         break;
       case "receipts":
@@ -106,6 +120,8 @@ export async function createXeroAttachment(
             entityId,
             finalFileName,
             Buffer.from(response.data),
+            undefined,
+            getClientHeaders(),
           );
         break;
       case "accounts":
@@ -115,6 +131,8 @@ export async function createXeroAttachment(
             entityId,
             finalFileName,
             Buffer.from(response.data),
+            undefined,
+            getClientHeaders(),
           );
         break;
       default:
