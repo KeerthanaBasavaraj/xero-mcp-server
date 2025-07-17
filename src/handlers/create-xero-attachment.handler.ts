@@ -64,6 +64,7 @@ export async function createXeroAttachment(
             finalFileName,
             Buffer.from(response.data),
             undefined,
+            undefined,
             getClientHeaders(),
           );
         break;
@@ -85,6 +86,7 @@ export async function createXeroAttachment(
             entityId,
             finalFileName,
             Buffer.from(response.data),
+            undefined,
             undefined,
             getClientHeaders(),
           );
