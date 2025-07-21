@@ -7,7 +7,6 @@ import { listXeroInvoices } from "../../handlers/list-xero-invoices.handler.js";
 import { listXeroAgedReceivables } from "../../handlers/list-aged-receivables.handler.js";
 import { listXeroItems } from "../../handlers/list-xero-items.handler.js";
 import { listXeroQuotes } from "../../handlers/list-xero-quotes.handler.js";
-import { fetchAllPages } from "../../helpers/pagination.js";
 
 export default CreateXeroTool(
   "generateBusinessInsightReportRaw",
@@ -48,16 +47,16 @@ export default CreateXeroTool(
       listXeroProfitAndLoss(prevStartDate, prevEndDateStr),
       // Budget summary for current month
       listXeroBudgetSummary(startDate),
-      // Contacts (all pages)
-      fetchAllPages(listXeroContacts),
-      // Invoices (all pages)
-      fetchAllPages(listXeroInvoices),
+      // Contacts (first page only)
+      listXeroContacts(1),
+      // Invoices (first page only)
+      listXeroInvoices(1),
       // Aged receivables (no filters)
       listXeroAgedReceivables(),
-      // Items (all pages)
-      fetchAllPages(listXeroItems),
-      // Quotes (all pages)
-      fetchAllPages(listXeroQuotes),
+      // Items (first page only)
+      listXeroItems(1),
+      // Quotes (first page only)
+      listXeroQuotes(1),
     ]);
 
     return {
