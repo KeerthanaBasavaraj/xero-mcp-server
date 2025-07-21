@@ -7,6 +7,7 @@ import { listXeroInvoices } from "../../handlers/list-xero-invoices.handler.js";
 import { listXeroAgedReceivables } from "../../handlers/list-aged-receivables.handler.js";
 import { listXeroItems } from "../../handlers/list-xero-items.handler.js";
 import { listXeroQuotes } from "../../handlers/list-xero-quotes.handler.js";
+import pLimit from "p-limit";
 
 export default CreateXeroTool(
   "generateBusinessInsightReportRaw",
@@ -31,7 +32,19 @@ export default CreateXeroTool(
       prevEndDate.getMonth() + 1
     ).padStart(2, "0")}-${String(prevEndDate.getDate()).padStart(2, "0")}`;
 
-    // Fetch all data in parallel using correct handler signatures
+    // Limit concurrency to 5
+    const limit = pLimit(5);
+    const tasks = [
+      () => listXeroProfitAndLoss(startDate, endDateStr),
+      () => listXeroProfitAndLoss(prevStartDate, prevEndDateStr),
+      () => listXeroBudgetSummary(startDate),
+      () => listXeroContacts(1),
+      () => listXeroInvoices(1),
+      () => listXeroAgedReceivables(),
+      () => listXeroItems(1),
+      () => listXeroQuotes(1),
+    ];
+
     const [
       profitAndLoss,
       profitAndLossPrev,
@@ -41,23 +54,7 @@ export default CreateXeroTool(
       agedReceivables,
       items,
       quotes,
-    ] = await Promise.all([
-      // Profit and Loss for current and previous month
-      listXeroProfitAndLoss(startDate, endDateStr),
-      listXeroProfitAndLoss(prevStartDate, prevEndDateStr),
-      // Budget summary for current month
-      listXeroBudgetSummary(startDate),
-      // Contacts (first page only)
-      listXeroContacts(1),
-      // Invoices (first page only)
-      listXeroInvoices(1),
-      // Aged receivables (no filters)
-      listXeroAgedReceivables(),
-      // Items (first page only)
-      listXeroItems(1),
-      // Quotes (first page only)
-      listXeroQuotes(1),
-    ]);
+    ] = await Promise.all(tasks.map(task => limit(task)));
 
     return {
       content: [
