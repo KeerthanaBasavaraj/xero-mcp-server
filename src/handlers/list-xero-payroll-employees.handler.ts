@@ -1,25 +1,23 @@
 import { xeroClient } from "../clients/xero-client.js";
-import { Employee } from "xero-node";
+import { Employee } from "xero-node/dist/gen/model/payroll-au/employee.js";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
-import { getClientHeaders } from "../helpers/get-client-headers.js";
 
 async function getPayrollEmployees(): Promise<Employee[]> {
   await xeroClient.authenticate();
 
-  // Call the Employees endpoint from the PayrollNZApi
-  const employees = await xeroClient.payrollNZApi.getEmployees(
+  // Call the Employees endpoint from the PayrollAUApi
+  const employees = await xeroClient.payrollAUApi.getEmployees(
     xeroClient.tenantId,
     undefined, // page
     undefined, // pageSize
-    getClientHeaders(),
   );
 
   return employees.body.employees ?? [];
 }
 
 /**
- * List all payroll employees from Xero
+ * List all payroll employees from Xero Payroll AU
  */
 export async function listXeroPayrollEmployees(): Promise<
   XeroClientResponse<Employee[]>
