@@ -25,6 +25,7 @@ import ListTrialBalanceTool from "./list-trial-balance.tool.js";
 import ListContactGroupsTool from "./list-contact-groups.tool.js";
 import ListAttachmentsTool from "./list-attachments.tool.js";
 import ListBudgetSummaryTool from "./list-budgets.tool.js";
+import ListClientServicesTool from "./list-client-services.tool.js";
 
 export const ListTools = [
   ListAccountsTool,
@@ -54,4 +55,5 @@ export const ListTools = [
   ListTrackingCategoriesTool,
   ListAttachmentsTool,
   ListBudgetSummaryTool,
+  ListClientServicesTool,
 ];
