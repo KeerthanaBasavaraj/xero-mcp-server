@@ -1,5 +1,4 @@
 import { z } from "zod";
-import pLimit from "p-limit";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { listXeroProfitAndLoss } from "../../handlers/list-xero-profit-and-loss.handler.js";
 import { listXeroBudgetSummary } from "../../handlers/list-xero-budget-summary.handler.js";
@@ -32,29 +31,7 @@ export default CreateXeroTool(
       prevEndDate.getMonth() + 1
     ).padStart(2, "0")}-${String(prevEndDate.getDate()).padStart(2, "0")}`;
 
-    // Create concurrency limiter with max 5 concurrent calls
-    const limit = pLimit(5);
-
-    // Define all API calls with concurrency limiting
-    const apiCalls = [
-      // Profit and Loss for current and previous month
-      limit(() => listXeroProfitAndLoss(startDate, endDateStr)),
-      limit(() => listXeroProfitAndLoss(prevStartDate, prevEndDateStr)),
-      // Budget summary for current month
-      limit(() => listXeroBudgetSummary(startDate)),
-      // Contacts (first page only)
-      limit(() => listXeroContacts(1)),
-      // Invoices (first page only)
-      limit(() => listXeroInvoices(1)),
-      // Aged receivables (no filters)
-      limit(() => listXeroAgedReceivables()),
-      // Items (first page only)
-      limit(() => listXeroItems(1)),
-      // Quotes (first page only)
-      limit(() => listXeroQuotes(1)),
-    ];
-
-    // Execute all API calls with concurrency limiting
+    // Fetch all data in parallel using correct handler signatures
     const [
       profitAndLoss,
       profitAndLossPrev,
@@ -64,7 +41,23 @@ export default CreateXeroTool(
       agedReceivables,
       items,
       quotes,
-    ] = await Promise.all(apiCalls);
+    ] = await Promise.all([
+      // Profit and Loss for current and previous month
+      listXeroProfitAndLoss(startDate, endDateStr),
+      listXeroProfitAndLoss(prevStartDate, prevEndDateStr),
+      // Budget summary for current month
+      listXeroBudgetSummary(startDate),
+      // Contacts (first page only)
+      listXeroContacts(1),
+      // Invoices (first page only)
+      listXeroInvoices(1),
+      // Aged receivables (no filters)
+      listXeroAgedReceivables(),
+      // Items (first page only)
+      listXeroItems(1),
+      // Quotes (first page only)
+      listXeroQuotes(1),
+    ]);
 
     return {
       content: [
