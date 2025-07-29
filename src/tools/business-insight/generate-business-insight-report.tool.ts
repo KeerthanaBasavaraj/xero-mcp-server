@@ -8,18 +8,45 @@ import { listXeroAgedReceivables } from "../../handlers/list-aged-receivables.ha
 import { listXeroItems } from "../../handlers/list-xero-items.handler.js";
 import { listXeroQuotes } from "../../handlers/list-xero-quotes.handler.js";
 
-// Helper function to batch API calls
-async function batchApiCalls<T>(calls: (() => Promise<T>)[]): Promise<T[]> {
-  const results: T[] = [];
-  const batchSize = 5; // Rate limit constraint
-  
-  for (let i = 0; i < calls.length; i += batchSize) {
-    const batch = calls.slice(i, i + batchSize);
-    const batchResults = await Promise.all(batch.map(call => call()));
-    results.push(...batchResults);
+// Concurrency limiter class
+class ConcurrencyLimiter {
+  private running = 0;
+  private queue: Array<() => Promise<any>> = [];
+  private maxConcurrency: number;
+
+  constructor(maxConcurrency: number) {
+    this.maxConcurrency = maxConcurrency;
   }
-  
-  return results;
+
+  async run<T>(fn: () => Promise<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+      this.queue.push(async () => {
+        try {
+          const result = await fn();
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      });
+      this.processQueue();
+    });
+  }
+
+  private async processQueue() {
+    if (this.running >= this.maxConcurrency || this.queue.length === 0) {
+      return;
+    }
+
+    this.running++;
+    const task = this.queue.shift()!;
+    
+    try {
+      await task();
+    } finally {
+      this.running--;
+      this.processQueue();
+    }
+  }
 }
 
 export default CreateXeroTool(
@@ -45,26 +72,29 @@ export default CreateXeroTool(
       prevEndDate.getMonth() + 1
     ).padStart(2, "0")}-${String(prevEndDate.getDate()).padStart(2, "0")}`;
 
-    // Define all API calls as functions
+    // Create concurrency limiter with max 5 concurrent calls
+    const limiter = new ConcurrencyLimiter(5);
+
+    // Define all API calls
     const apiCalls = [
       // Profit and Loss for current and previous month
-      () => listXeroProfitAndLoss(startDate, endDateStr),
-      () => listXeroProfitAndLoss(prevStartDate, prevEndDateStr),
+      () => limiter.run(() => listXeroProfitAndLoss(startDate, endDateStr)),
+      () => limiter.run(() => listXeroProfitAndLoss(prevStartDate, prevEndDateStr)),
       // Budget summary for current month
-      () => listXeroBudgetSummary(startDate),
+      () => limiter.run(() => listXeroBudgetSummary(startDate)),
       // Contacts (first page only)
-      () => listXeroContacts(1),
+      () => limiter.run(() => listXeroContacts(1)),
       // Invoices (first page only)
-      () => listXeroInvoices(1),
+      () => limiter.run(() => listXeroInvoices(1)),
       // Aged receivables (no filters)
-      () => listXeroAgedReceivables(),
+      () => limiter.run(() => listXeroAgedReceivables()),
       // Items (first page only)
-      () => listXeroItems(1),
+      () => limiter.run(() => listXeroItems(1)),
       // Quotes (first page only)
-      () => listXeroQuotes(1),
+      () => limiter.run(() => listXeroQuotes(1)),
     ];
 
-    // Execute API calls in batches of 5 to respect rate limits
+    // Execute all API calls with concurrency limiting
     const [
       profitAndLoss,
       profitAndLossPrev,
@@ -74,7 +104,7 @@ export default CreateXeroTool(
       agedReceivables,
       items,
       quotes,
-    ] = await batchApiCalls(apiCalls);
+    ] = await Promise.all(apiCalls.map(call => call()));
 
     return {
       content: [
