@@ -43,7 +43,7 @@ const extractFinancialMetrics = (plData: any) => {
   };
 };
 
-export default CreateXeroTool(
+const GenerateBusinessInsightReportTool = CreateXeroTool(
   "generateBusinessInsightReport",
   "Generates a comprehensive business insight report with financial metrics, client analysis, and detailed P&L breakdown. Handles rate limits by making sequential API calls.",
   {
@@ -159,3 +159,5 @@ export default CreateXeroTool(
     }
   },
 );
+
+export default GenerateBusinessInsightReportTool;
