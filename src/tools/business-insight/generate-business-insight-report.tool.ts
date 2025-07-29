@@ -43,7 +43,7 @@ const extractFinancialMetrics = (plData: any) => {
   };
 };
 
-const GenerateBusinessInsightReportTool = CreateXeroTool(
+export default CreateXeroTool(
   "generateBusinessInsightReport",
   "Generates a comprehensive business insight report with financial metrics, client analysis, and detailed P&L breakdown. Handles rate limits by making sequential API calls.",
   {
@@ -70,15 +70,27 @@ const GenerateBusinessInsightReportTool = CreateXeroTool(
     try {
       // Sequential API calls to respect rate limits
       const profitAndLoss = await listXeroProfitAndLoss(startDate, endDateStr);
+      if (profitAndLoss.isError) {
+        throw new Error(`Failed to fetch current month P&L: ${profitAndLoss.error}`);
+      }
       await delay(1000); // 1 second delay between calls
       
       const profitAndLossPrev = await listXeroProfitAndLoss(prevStartDate, prevEndDateStr);
+      if (profitAndLossPrev.isError) {
+        throw new Error(`Failed to fetch previous month P&L: ${profitAndLossPrev.error}`);
+      }
       await delay(1000);
       
       const budgetSummary = await listXeroBudgetSummary(startDate);
+      if (budgetSummary.isError) {
+        throw new Error(`Failed to fetch budget summary: ${budgetSummary.error}`);
+      }
       await delay(1000);
       
       const agedReceivables = await listXeroAgedReceivables();
+      if (agedReceivables.isError) {
+        throw new Error(`Failed to fetch aged receivables: ${agedReceivables.error}`);
+      }
       
       // Extract financial metrics
       const currentMetrics = extractFinancialMetrics(profitAndLoss.result);
@@ -159,5 +171,3 @@ const GenerateBusinessInsightReportTool = CreateXeroTool(
     }
   },
 );
-
-export default GenerateBusinessInsightReportTool;
