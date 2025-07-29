@@ -2,50 +2,29 @@ import { z } from "zod";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { listXeroProfitAndLoss } from "../../handlers/list-xero-profit-and-loss.handler.js";
 import { listXeroBudgetSummary } from "../../handlers/list-xero-budget-summary.handler.js";
+import { listXeroContacts } from "../../handlers/list-xero-contacts.handler.js";
+import { listXeroInvoices } from "../../handlers/list-xero-invoices.handler.js";
 import { listXeroAgedReceivables } from "../../handlers/list-aged-receivables.handler.js";
+import { listXeroItems } from "../../handlers/list-xero-items.handler.js";
+import { listXeroQuotes } from "../../handlers/list-xero-quotes.handler.js";
 
-// Helper function to add delay between API calls to respect rate limits
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Helper function to calculate percentage variance
-const calculateVariance = (current: number, previous: number): number => {
-  if (previous === 0) return current > 0 ? 100 : 0;
-  return ((current - previous) / previous) * 100;
-};
-
-// Helper function to extract financial metrics from P&L data
-const extractFinancialMetrics = (plData: any) => {
-  if (!plData?.rows) return null;
+// Helper function to batch API calls
+async function batchApiCalls<T>(calls: (() => Promise<T>)[]): Promise<T[]> {
+  const results: T[] = [];
+  const batchSize = 5; // Rate limit constraint
   
-  let revenue = 0;
-  let expenses = 0;
-  let costOfSales = 0;
+  for (let i = 0; i < calls.length; i += batchSize) {
+    const batch = calls.slice(i, i + batchSize);
+    const batchResults = await Promise.all(batch.map(call => call()));
+    results.push(...batchResults);
+  }
   
-  plData.rows.forEach((row: any) => {
-    const accountType = row.cells?.[0]?.value;
-    const amount = parseFloat(row.cells?.[1]?.value || '0');
-    
-    if (accountType?.includes('Revenue') || accountType?.includes('Income')) {
-      revenue += amount;
-    } else if (accountType?.includes('Cost of Sales')) {
-      costOfSales += amount;
-    } else if (accountType?.includes('Expense')) {
-      expenses += amount;
-    }
-  });
-  
-  return {
-    revenue,
-    expenses,
-    costOfSales,
-    grossProfit: revenue - costOfSales,
-    netIncome: revenue - expenses
-  };
-};
+  return results;
+}
 
 export default CreateXeroTool(
-  "generateBusinessInsightReport",
-  "Generates a comprehensive business insight report with financial metrics, client analysis, and detailed P&L breakdown. Handles rate limits by making sequential API calls.",
+  "generateBusinessInsightReportRaw",
+  "Fetches all raw data needed for a business insight report for a selected month. Returns profit and loss, previous profit and loss, budget summary, contacts, invoices, aged receivables, items, and quotes.",
   {
     month: z.string().describe("Month in YYYY-MM format"),
   },
@@ -57,117 +36,63 @@ export default CreateXeroTool(
     const endDateStr = `${endDate.getFullYear()}-${String(
       endDate.getMonth() + 1
     ).padStart(2, "0")}-${String(endDate.getDate()).padStart(2, "0")}`;
-    
     // Previous month
     const prevMonth = monthNum === 1 ? 12 : monthNum - 1;
     const prevYear = monthNum === 1 ? year - 1 : year;
     const prevStartDate = `${prevYear}-${String(prevMonth).padStart(2, "0")}-01`;
-    const prevEndDate = new Date(prevYear, prevMonth, 0);
+    const prevEndDate = new Date(prevYear, prevMonth, 0); // prevMonth is 1-based, so this is correct
     const prevEndDateStr = `${prevEndDate.getFullYear()}-${String(
       prevEndDate.getMonth() + 1
     ).padStart(2, "0")}-${String(prevEndDate.getDate()).padStart(2, "0")}`;
 
-    try {
-      // Sequential API calls to respect rate limits
-      const profitAndLoss = await listXeroProfitAndLoss(startDate, endDateStr);
-      if (profitAndLoss.isError) {
-        throw new Error(`Failed to fetch current month P&L: ${profitAndLoss.error}`);
-      }
-      await delay(1000); // 1 second delay between calls
-      
-      const profitAndLossPrev = await listXeroProfitAndLoss(prevStartDate, prevEndDateStr);
-      if (profitAndLossPrev.isError) {
-        throw new Error(`Failed to fetch previous month P&L: ${profitAndLossPrev.error}`);
-      }
-      await delay(1000);
-      
-      const budgetSummary = await listXeroBudgetSummary(startDate);
-      if (budgetSummary.isError) {
-        throw new Error(`Failed to fetch budget summary: ${budgetSummary.error}`);
-      }
-      await delay(1000);
-      
-      const agedReceivables = await listXeroAgedReceivables();
-      if (agedReceivables.isError) {
-        throw new Error(`Failed to fetch aged receivables: ${agedReceivables.error}`);
-      }
-      
-      // Extract financial metrics
-      const currentMetrics = extractFinancialMetrics(profitAndLoss.result);
-      const previousMetrics = extractFinancialMetrics(profitAndLossPrev.result);
-      
-      // Calculate variances
-      const netIncomeVariance = currentMetrics && previousMetrics 
-        ? calculateVariance(currentMetrics.netIncome, previousMetrics.netIncome)
-        : 0;
-        
-      const grossProfitVariance = currentMetrics && budgetSummary.result?.[0]
-        ? calculateVariance(currentMetrics.grossProfit, budgetSummary.result[0].grossProfit || 0)
-        : 0;
-      
-      // Calculate accounts receivable days (simplified calculation)
-      const totalReceivables = agedReceivables.result?.rows?.reduce((sum: number, row: any) => 
-        sum + (parseFloat(row["Overdue Amount"] || '0')), 0) || 0;
-      const avgDailyRevenue = currentMetrics ? currentMetrics.revenue / 30 : 0;
-      const receivableDays = avgDailyRevenue > 0 ? totalReceivables / avgDailyRevenue : 0;
-      
-      // Calculate expense to revenue ratios
-      const currentExpenseRatio = currentMetrics && currentMetrics.revenue > 0 
-        ? (currentMetrics.expenses / currentMetrics.revenue) * 100 
-        : 0;
-      const previousExpenseRatio = previousMetrics && previousMetrics.revenue > 0 
-        ? (previousMetrics.expenses / previousMetrics.revenue) * 100 
-        : 0;
-      
-      // Calculate average overdue amount
-      const numberOfOverdueInvoices = agedReceivables.result?.rows?.length || 0;
-      const averageOverdueAmount = numberOfOverdueInvoices > 0 
-        ? totalReceivables / numberOfOverdueInvoices 
-        : 0;
+    // Define all API calls as functions
+    const apiCalls = [
+      // Profit and Loss for current and previous month
+      () => listXeroProfitAndLoss(startDate, endDateStr),
+      () => listXeroProfitAndLoss(prevStartDate, prevEndDateStr),
+      // Budget summary for current month
+      () => listXeroBudgetSummary(startDate),
+      // Contacts (first page only)
+      () => listXeroContacts(1),
+      // Invoices (first page only)
+      () => listXeroInvoices(1),
+      // Aged receivables (no filters)
+      () => listXeroAgedReceivables(),
+      // Items (first page only)
+      () => listXeroItems(1),
+      // Quotes (first page only)
+      () => listXeroQuotes(1),
+    ];
 
-      return {
-        content: [
-          {
-            type: "text" as const,
-            text: JSON.stringify({
-              period: { 
-                startDate, 
-                endDate: endDateStr, 
-                previousStart: prevStartDate, 
-                previousEnd: prevEndDateStr 
-              },
-              profitAndLoss: profitAndLoss.result,
-              profitAndLossPrev: profitAndLossPrev.result,
-              budgetSummary: budgetSummary.result,
-              agedReceivables: agedReceivables.result,
-              calculatedMetrics: {
-                currentMetrics,
-                previousMetrics,
-                netIncomeVariance,
-                grossProfitVariance,
-                receivableDays,
-                totalReceivables,
-                currentExpenseRatio,
-                previousExpenseRatio,
-                numberOfOverdueInvoices,
-                averageOverdueAmount
-              }
-            }, null, 2),
-          },
-        ],
-      };
-    } catch (error) {
-      return {
-        content: [
-          {
-            type: "text" as const,
-            text: JSON.stringify({
-              error: "Failed to generate business insight report",
-              details: error instanceof Error ? error.message : String(error)
-            }, null, 2),
-          },
-        ],
-      };
-    }
+    // Execute API calls in batches of 5 to respect rate limits
+    const [
+      profitAndLoss,
+      profitAndLossPrev,
+      budgetSummary,
+      contacts,
+      invoices,
+      agedReceivables,
+      items,
+      quotes,
+    ] = await batchApiCalls(apiCalls);
+
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: JSON.stringify({
+            period: { startDate, endDate: endDateStr },
+            profitAndLoss,
+            profitAndLossPrev,
+            budgetSummary,
+            contacts,
+            invoices,
+            agedReceivables,
+            items,
+            quotes,
+          }, null, 2),
+        },
+      ],
+    };
   },
 );
