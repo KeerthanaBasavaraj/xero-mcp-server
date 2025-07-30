@@ -8,6 +8,47 @@ import { listXeroAgedReceivables } from "../../handlers/list-aged-receivables.ha
 import { listXeroItems } from "../../handlers/list-xero-items.handler.js";
 import { listXeroQuotes } from "../../handlers/list-xero-quotes.handler.js";
 
+// Concurrency limiter class
+class ConcurrencyLimiter {
+  private running = 0;
+  private queue: Array<() => Promise<any>> = [];
+  private maxConcurrency: number;
+
+  constructor(maxConcurrency: number) {
+    this.maxConcurrency = maxConcurrency;
+  }
+
+  async run<T>(fn: () => Promise<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+      this.queue.push(async () => {
+        try {
+          const result = await fn();
+          resolve(result);
+        } catch (error) {
+          reject(error);
+        }
+      });
+      this.processQueue();
+    });
+  }
+
+  private async processQueue() {
+    if (this.running >= this.maxConcurrency || this.queue.length === 0) {
+      return;
+    }
+
+    this.running++;
+    const task = this.queue.shift()!;
+    
+    try {
+      await task();
+    } finally {
+      this.running--;
+      this.processQueue();
+    }
+  }
+}
+
 export default CreateXeroTool(
   "generateBusinessInsightReportRaw",
   "Fetches all raw data needed for a business insight report for a selected month. Returns profit and loss, previous profit and loss, budget summary, contacts, invoices, aged receivables, items, and quotes.",
@@ -31,7 +72,29 @@ export default CreateXeroTool(
       prevEndDate.getMonth() + 1
     ).padStart(2, "0")}-${String(prevEndDate.getDate()).padStart(2, "0")}`;
 
-    // Fetch all data in parallel using correct handler signatures
+    // Create concurrency limiter with max 5 concurrent calls
+    const limiter = new ConcurrencyLimiter(5);
+
+    // Define all API calls
+    const apiCalls = [
+      // Profit and Loss for current and previous month
+      () => limiter.run(() => listXeroProfitAndLoss(startDate, endDateStr)),
+      () => limiter.run(() => listXeroProfitAndLoss(prevStartDate, prevEndDateStr)),
+      // Budget summary for current month
+      () => limiter.run(() => listXeroBudgetSummary(startDate)),
+      // Contacts (first page only)
+      () => limiter.run(() => listXeroContacts(1)),
+      // Invoices (first page only)
+      () => limiter.run(() => listXeroInvoices(1)),
+      // Aged receivables (no filters)
+      () => limiter.run(() => listXeroAgedReceivables()),
+      // Items (first page only)
+      () => limiter.run(() => listXeroItems(1)),
+      // Quotes (first page only)
+      () => limiter.run(() => listXeroQuotes(1)),
+    ];
+
+    // Execute all API calls with concurrency limiting
     const [
       profitAndLoss,
       profitAndLossPrev,
@@ -41,23 +104,7 @@ export default CreateXeroTool(
       agedReceivables,
       items,
       quotes,
-    ] = await Promise.all([
-      // Profit and Loss for current and previous month
-      listXeroProfitAndLoss(startDate, endDateStr),
-      listXeroProfitAndLoss(prevStartDate, prevEndDateStr),
-      // Budget summary for current month
-      listXeroBudgetSummary(startDate),
-      // Contacts (first page only)
-      listXeroContacts(1),
-      // Invoices (first page only)
-      listXeroInvoices(1),
-      // Aged receivables (no filters)
-      listXeroAgedReceivables(),
-      // Items (first page only)
-      listXeroItems(1),
-      // Quotes (first page only)
-      listXeroQuotes(1),
-    ]);
+    ] = await Promise.all(apiCalls.map(call => call()));
 
     return {
       content: [
