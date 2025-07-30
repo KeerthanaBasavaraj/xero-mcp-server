@@ -2,6 +2,7 @@ import { z } from "zod";
 import { listXeroInvoices } from "../../handlers/list-xero-invoices.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { formatLineItem } from "../../helpers/format-line-item.js";
+import { formatPaginationInfo } from "../../helpers/format-pagination.js";
 
 const ListInvoicesTool = CreateXeroTool(
   "list-invoices",
@@ -20,9 +21,10 @@ const ListInvoicesTool = CreateXeroTool(
       .array(z.string())
       .optional()
       .describe("If provided, invoice line items will also be returned"),
+    pageSize: z.number().optional().default(10).describe("Number of invoices to retrieve per page. Default is 10."),
   },
-  async ({ page, contactIds, invoiceNumbers }) => {
-    const response = await listXeroInvoices(page, contactIds, invoiceNumbers);
+  async ({ page, contactIds, invoiceNumbers, pageSize }) => {
+    const response = await listXeroInvoices(page, contactIds, invoiceNumbers, pageSize);
     if (response.error !== null) {
       return {
         content: [
@@ -34,7 +36,9 @@ const ListInvoicesTool = CreateXeroTool(
       };
     }
 
-    const invoices = response.result;
+    const result = response.result;
+    const invoices = result?.invoices || [];
+    const pagination = result?.pagination;
     const returnLineItems = (invoiceNumbers?.length ?? 0) > 0;
 
     return {
@@ -89,6 +93,11 @@ const ListInvoicesTool = CreateXeroTool(
             .filter(Boolean)
             .join("\n"),
         })) || []),
+        // Add pagination information if available
+        ...(pagination ? [{
+          type: "text" as const,
+          text: formatPaginationInfo(pagination, page)
+        }] : []),
       ],
     };
   },

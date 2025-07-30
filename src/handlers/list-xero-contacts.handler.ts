@@ -4,7 +4,7 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
-async function getContacts(page?: number): Promise<Contact[]> {
+async function getContacts(page?: number, pageSize?: number): Promise<{ contacts: Contact[], pagination?: any }> {
   await xeroClient.authenticate();
 
   const contacts = await xeroClient.accountingApi.getContacts(
@@ -16,24 +16,27 @@ async function getContacts(page?: number): Promise<Contact[]> {
     page, // page
     undefined, // includeArchived
     true, // summaryOnly
-    undefined, // pageSize
     undefined, // searchTerm
+    pageSize, // pageSize
     getClientHeaders(),
   );
-  return contacts.body.contacts ?? [];
+  return {
+    contacts: contacts.body.contacts ?? [],
+    pagination: contacts.body.pagination
+  };
 }
 
 /**
  * List all contacts from Xero
  */
-export async function listXeroContacts(page?: number): Promise<
-  XeroClientResponse<Contact[]>
+export async function listXeroContacts(page?: number, pageSize?: number): Promise<
+  XeroClientResponse<{ contacts: Contact[], pagination?: any }>
 > {
   try {
-    const contacts = await getContacts(page);
+    const result = await getContacts(page, pageSize);
 
     return {
-      result: contacts,
+      result: result,
       isError: false,
       error: null,
     };

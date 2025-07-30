@@ -8,7 +8,8 @@ async function getManualJournals(
   page: number,
   manualJournalId?: string,
   modifiedAfter?: string,
-): Promise<ManualJournal[]> {
+  pageSize?: number,
+): Promise<{ manualJournals: ManualJournal[], pagination?: any }> {
   await xeroClient.authenticate();
 
   if (manualJournalId) {
@@ -18,7 +19,10 @@ async function getManualJournals(
       getClientHeaders(),
     );
 
-    return response.body.manualJournals ?? [];
+    return {
+      manualJournals: response.body.manualJournals ?? [],
+      pagination: response.body.pagination
+    };
   }
 
   const response = await xeroClient.accountingApi.getManualJournals(
@@ -27,11 +31,14 @@ async function getManualJournals(
     undefined,
     "UpdatedDateUTC DESC",
     page,
-    10, // pageSize
+    pageSize, // pageSize
     getClientHeaders(),
   );
 
-  return response.body.manualJournals ?? [];
+  return {
+    manualJournals: response.body.manualJournals ?? [],
+    pagination: response.body.pagination
+  };
 }
 
 /**
@@ -41,16 +48,18 @@ export async function listXeroManualJournals(
   page: number = 1,
   manualJournalId?: string,
   modifiedAfter?: string,
-): Promise<XeroClientResponse<ManualJournal[]>> {
+  pageSize?: number,
+): Promise<XeroClientResponse<{ manualJournals: ManualJournal[], pagination?: any }>> {
   try {
-    const manualJournals = await getManualJournals(
+    const result = await getManualJournals(
       page,
       manualJournalId,
       modifiedAfter,
+      pageSize,
     );
 
     return {
-      result: manualJournals,
+      result: result,
       isError: false,
       error: null,
     };
