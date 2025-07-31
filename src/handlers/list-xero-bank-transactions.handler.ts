@@ -7,7 +7,8 @@ import { formatError } from "../helpers/format-error.js";
 async function getBankTransactions(
   page: number,
   bankAccountId?: string,
-): Promise<BankTransaction[]> {
+  pageSize?: number,
+): Promise<{ bankTransactions: BankTransaction[], pagination?: any }> {
   await xeroClient.authenticate();
 
   const response = await xeroClient.accountingApi.getBankTransactions(xeroClient.tenantId,
@@ -16,22 +17,26 @@ async function getBankTransactions(
       "Date DESC", // order
       page, // page
       undefined, // unitdp
-      10, // pagesize
+      pageSize, // pagesize
       getClientHeaders()
   );
 
-  return response.body.bankTransactions ?? [];
+  return {
+    bankTransactions: response.body.bankTransactions ?? [],
+    pagination: response.body.pagination
+  };
 }
 
 export async function listXeroBankTransactions(
   page: number = 1,
-  bankAccountId?: string
-): Promise<XeroClientResponse<BankTransaction[]>> {
+  bankAccountId?: string,
+  pageSize?: number
+): Promise<XeroClientResponse<{ bankTransactions: BankTransaction[], pagination?: any }>> {
   try {
-    const bankTransactions = await getBankTransactions(page, bankAccountId);
+    const result = await getBankTransactions(page, bankAccountId, pageSize);
 
     return {
-      result: bankTransactions,
+      result: result,
       isError: false,
       error: null
     }

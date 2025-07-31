@@ -2,6 +2,7 @@ import { z } from "zod";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { listXeroBankTransactions } from "../../handlers/list-xero-bank-transactions.handler.js";
 import { formatLineItem } from "../../helpers/format-line-item.js";
+import { formatPaginationInfo } from "../../helpers/format-pagination.js";
 
 const ListBankTransactionsTool = CreateXeroTool(
   "list-bank-transactions",
@@ -14,10 +15,11 @@ const ListBankTransactionsTool = CreateXeroTool(
   if one was provided in the provided in the previous call.`,
   {
     page: z.number(),
-    bankAccountId: z.string().optional()
+    bankAccountId: z.string().optional(),
+    pageSize: z.number().optional().default(10).describe("Number of bank transactions to retrieve per page. Default is 10.")
   },
-  async ({ bankAccountId, page }) => {
-    const response = await listXeroBankTransactions(page, bankAccountId);
+  async ({ bankAccountId, page, pageSize }) => {
+    const response = await listXeroBankTransactions(page, bankAccountId, pageSize);
     if (response.isError) {
       return {
         content: [
@@ -29,7 +31,9 @@ const ListBankTransactionsTool = CreateXeroTool(
       };
     }
 
-    const bankTransactions = response.result;
+    const result = response.result;
+    const bankTransactions = result?.bankTransactions || [];
+    const pagination = result?.pagination;
 
     return {
       content: [
@@ -59,7 +63,12 @@ const ListBankTransactionsTool = CreateXeroTool(
               : null,
             `Line Items: ${transaction.lineItems?.map(formatLineItem)}`,
           ].filter(Boolean).join("\n")
-        })) || [])
+        })) || []),
+        // Add pagination information if available
+        ...(pagination ? [{
+          type: "text" as const,
+          text: formatPaginationInfo(pagination, page)
+        }] : [])
       ]
     };
   }

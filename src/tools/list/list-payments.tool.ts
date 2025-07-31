@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { listXeroPayments } from "../../handlers/list-xero-payments.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { formatPaginationInfo } from "../../helpers/format-pagination.js";
 import { Payment } from "xero-node";
 
 function paymentFormatter(payment: Payment): string {
@@ -52,14 +53,15 @@ const ListPaymentsTool = CreateXeroTool(
     invoiceId: z.string().optional(),
     paymentId: z.string().optional(),
     reference: z.string().optional(),
+    pageSize: z.number().optional().default(10).describe("Number of payments to retrieve per page. Default is 10."),
   },
-  async ({ page, invoiceNumber, invoiceId, paymentId, reference }) => {
+  async ({ page, invoiceNumber, invoiceId, paymentId, reference, pageSize }) => {
     const response = await listXeroPayments(page, {
       invoiceNumber,
       invoiceId,
       paymentId,
       reference,
-    });
+    }, pageSize);
 
     if (response.error !== null) {
       return {
@@ -72,7 +74,9 @@ const ListPaymentsTool = CreateXeroTool(
       };
     }
 
-    const payments = response.result;
+    const result = response.result;
+    const payments = result?.payments || [];
+    const pagination = result?.pagination;
 
     return {
       content: [
@@ -82,8 +86,13 @@ const ListPaymentsTool = CreateXeroTool(
         },
         ...(payments?.map((payment) => ({
           type: "text" as const,
-          text: paymentFormatter(payment),
+                      text: paymentFormatter(payment),
         })) || []),
+        // Add pagination information if available
+        ...(pagination ? [{
+          type: "text" as const,
+          text: formatPaginationInfo(pagination, page)
+        }] : []),
       ],
     };
   },

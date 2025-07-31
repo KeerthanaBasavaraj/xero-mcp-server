@@ -1,5 +1,6 @@
 import { listXeroContacts } from "../../handlers/list-xero-contacts.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { formatPaginationInfo } from "../../helpers/format-pagination.js";
 import { z } from "zod";
 
 const ListContactsTool = CreateXeroTool(
@@ -10,10 +11,11 @@ const ListContactsTool = CreateXeroTool(
     page: z.number().optional().describe("Optional page number to retrieve for pagination. \
       If not provided, the first page will be returned. If 100 contacts are returned, \
       call this tool again with the next page number."),
+    pageSize: z.number().optional().default(10).describe("Number of contacts to retrieve per page. Default is 10."),
   },
   async (params) => {
-    const { page } = params;
-    const response = await listXeroContacts(page);
+    const { page, pageSize } = params;
+    const response = await listXeroContacts(page, pageSize);
 
     if (response.isError) {
       return {
@@ -26,7 +28,9 @@ const ListContactsTool = CreateXeroTool(
       };
     }
 
-    const contacts = response.result;
+    const result = response.result;
+    const contacts = result?.contacts || [];
+    const pagination = result?.pagination;
 
     return {
       content: [
@@ -74,6 +78,11 @@ const ListContactsTool = CreateXeroTool(
             .filter(Boolean)
             .join("\n"),
         })) || []),
+        // Add pagination information if available
+        ...(pagination ? [{
+          type: "text" as const,
+          text: formatPaginationInfo(pagination, page)
+        }] : []),
       ],
     };
   },

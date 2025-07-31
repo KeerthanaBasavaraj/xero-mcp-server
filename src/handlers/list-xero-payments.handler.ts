@@ -17,7 +17,8 @@ async function getPayments(
     paymentId?: string;
     reference?: string;
   },
-): Promise<Payment[]> {
+  pageSize?: number,
+): Promise<{ payments: Payment[], pagination?: any }> {
   await xeroClient.authenticate();
 
   // Build where clause for filtering
@@ -46,11 +47,14 @@ async function getPayments(
     where,
     "UpdatedDateUTC DESC", // order
     page, // page
-    10, // pageSize
+    pageSize, // pageSize
     getClientHeaders(), // options
   );
 
-  return response.body.payments ?? [];
+  return {
+    payments: response.body.payments ?? [],
+    pagination: response.body.pagination
+  };
 }
 
 /**
@@ -69,17 +73,18 @@ export async function listXeroPayments(
     paymentId?: string;
     reference?: string;
   },
-): Promise<XeroClientResponse<Payment[]>> {
+  pageSize?: number,
+): Promise<XeroClientResponse<{ payments: Payment[], pagination?: any }>> {
   try {
-    const payments = await getPayments(page, {
+    const result = await getPayments(page, {
       invoiceNumber,
       invoiceId,
       paymentId,
       reference,
-    });
+    }, pageSize);
 
     return {
-      result: payments,
+      result: result,
       isError: false,
       error: null,
     };

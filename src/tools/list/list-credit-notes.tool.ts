@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { listXeroCreditNotes } from "../../handlers/list-xero-credit-notes.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { formatPaginationInfo } from "../../helpers/format-pagination.js";
 
 const ListCreditNotesTool = CreateXeroTool(
   "list-credit-notes",
@@ -14,9 +15,10 @@ const ListCreditNotesTool = CreateXeroTool(
   {
     page: z.number(),
     contactId: z.string().optional(),
+    pageSize: z.number().optional().default(10).describe("Number of credit notes to retrieve per page. Default is 10."),
   },
-  async ({ page, contactId }) => {
-    const response = await listXeroCreditNotes(page, contactId);
+  async ({ page, contactId, pageSize }) => {
+    const response = await listXeroCreditNotes(page, contactId, pageSize);
     if (response.error !== null) {
       return {
         content: [
@@ -28,7 +30,9 @@ const ListCreditNotesTool = CreateXeroTool(
       };
     }
 
-    const creditNotes = response.result;
+    const result = response.result;
+    const creditNotes = result?.creditNotes || [];
+    const pagination = result?.pagination;
 
     return {
       content: [
@@ -67,6 +71,11 @@ const ListCreditNotesTool = CreateXeroTool(
             .filter(Boolean)
             .join("\n"),
         })) || []),
+        // Add pagination information if available
+        ...(pagination ? [{
+          type: "text" as const,
+          text: formatPaginationInfo(pagination, page)
+        }] : []),
       ],
     };
   },

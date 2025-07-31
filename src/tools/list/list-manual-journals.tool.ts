@@ -1,6 +1,7 @@
 import { ManualJournal } from "xero-node";
 import { listXeroManualJournals } from "../../handlers/list-xero-manual-journals.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { formatPaginationInfo } from "../../helpers/format-pagination.js";
 import { z } from "zod";
 
 const ListManualJournalsTool = CreateXeroTool(
@@ -23,6 +24,7 @@ If they want the next page, call this tool again with the next page number, modi
         "Optional date YYYY-MM-DD to filter journals modified after this date",
       ),
     page: z.number().optional().describe("Optional page number for pagination"),
+    pageSize: z.number().optional().default(10).describe("Number of manual journals to retrieve per page. Default is 10."),
     // TODO: where, order
   },
   async (args) => {
@@ -30,6 +32,7 @@ If they want the next page, call this tool again with the next page number, modi
       args?.page,
       args?.manualJournalId,
       args?.modifiedAfter,
+      args?.pageSize,
     );
 
     if (response.isError) {
@@ -43,7 +46,9 @@ If they want the next page, call this tool again with the next page number, modi
       };
     }
 
-    const manualJournals = response.result;
+    const result = response.result;
+    const manualJournals = result?.manualJournals || [];
+    const pagination = result?.pagination;
 
     return {
       content: [
@@ -91,6 +96,11 @@ If they want the next page, call this tool again with the next page number, modi
             .filter(Boolean)
             .join("\n"),
         })) || []),
+        // Add pagination information if available
+        ...(pagination ? [{
+          type: "text" as const,
+          text: formatPaginationInfo(pagination, args?.page)
+        }] : []),
       ],
     };
   },
