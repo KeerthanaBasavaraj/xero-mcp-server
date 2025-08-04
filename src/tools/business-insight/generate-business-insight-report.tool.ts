@@ -39,7 +39,7 @@ class ConcurrencyLimiter {
 
     this.running++;
     const task = this.queue.shift()!;
-    
+
     try {
       await task();
     } finally {
@@ -51,7 +51,7 @@ class ConcurrencyLimiter {
 
 export default CreateXeroTool(
   "generateBusinessInsightReportRaw",
-  "Fetches all raw data needed for a business insight report for a selected month. Returns profit and loss, previous profit and loss, budget summary, contacts, invoices, aged receivables, items, and quotes.",
+  "Fetches all raw data needed for a business insight report for a selected month.",
   {
     month: z.string().describe("Month in YYYY-MM format"),
   },
@@ -61,7 +61,7 @@ export default CreateXeroTool(
     const startDate = `${year}-${String(monthNum).padStart(2, "0")}-01`;
     const endDate = new Date(year, monthNum, 0); // last day of month
     const endDateStr = `${endDate.getFullYear()}-${String(
-      endDate.getMonth() + 1
+      endDate.getMonth() + 1,
     ).padStart(2, "0")}-${String(endDate.getDate()).padStart(2, "0")}`;
     // Previous month
     const prevMonth = monthNum === 1 ? 12 : monthNum - 1;
@@ -69,7 +69,7 @@ export default CreateXeroTool(
     const prevStartDate = `${prevYear}-${String(prevMonth).padStart(2, "0")}-01`;
     const prevEndDate = new Date(prevYear, prevMonth, 0); // prevMonth is 1-based, so this is correct
     const prevEndDateStr = `${prevEndDate.getFullYear()}-${String(
-      prevEndDate.getMonth() + 1
+      prevEndDate.getMonth() + 1,
     ).padStart(2, "0")}-${String(prevEndDate.getDate()).padStart(2, "0")}`;
 
     // Create concurrency limiter with max 5 concurrent calls
@@ -79,7 +79,8 @@ export default CreateXeroTool(
     const apiCalls = [
       // Profit and Loss for current and previous month
       () => limiter.run(() => listXeroProfitAndLoss(startDate, endDateStr)),
-      () => limiter.run(() => listXeroProfitAndLoss(prevStartDate, prevEndDateStr)),
+      () =>
+        limiter.run(() => listXeroProfitAndLoss(prevStartDate, prevEndDateStr)),
       // Budget summary for current month
       () => limiter.run(() => listXeroBudgetSummary(startDate)),
       // Contacts (first page only)
@@ -104,23 +105,27 @@ export default CreateXeroTool(
       agedReceivables,
       items,
       quotes,
-    ] = await Promise.all(apiCalls.map(call => call()));
+    ] = await Promise.all(apiCalls.map((call) => call()));
 
     return {
       content: [
         {
           type: "text" as const,
-          text: JSON.stringify({
-            period: { startDate, endDate: endDateStr },
-            profitAndLoss,
-            profitAndLossPrev,
-            budgetSummary,
-            contacts,
-            invoices,
-            agedReceivables,
-            items,
-            quotes,
-          }, null, 2),
+          text: JSON.stringify(
+            {
+              period: { startDate, endDate: endDateStr },
+              profitAndLoss,
+              profitAndLossPrev,
+              budgetSummary,
+              contacts,
+              invoices,
+              agedReceivables,
+              items,
+              quotes,
+            },
+            null,
+            2,
+          ),
         },
       ],
     };
