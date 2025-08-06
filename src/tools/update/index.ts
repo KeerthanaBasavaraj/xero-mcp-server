@@ -13,6 +13,8 @@ import UpdateQuoteTool from "./update-quote.tool.js";
 import UpdateTrackingCategoryTool from "./update-tracking-category.tool.js";
 import UpdateTrackingOptionsTool from "./update-tracking-options.tool.js";
 import UpdatePayrollEmployeeTool from "./update-payroll-employee.tool.js";
+import ArchiveContactTool from "./archive-contact.tool.js";
+import DeleteContactTool from "./delete-contact.tool.js";
 
 export const UpdateTools = [
   UpdateContactTool,
@@ -28,5 +30,7 @@ export const UpdateTools = [
   RevertPayrollTimesheetTool,
   UpdateTrackingCategoryTool,
   UpdateTrackingOptionsTool,
-  UpdatePayrollEmployeeTool
+  UpdatePayrollEmployeeTool,
+  ArchiveContactTool,
+  DeleteContactTool
 ];
