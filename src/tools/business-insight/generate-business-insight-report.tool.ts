@@ -7,6 +7,7 @@ import { listXeroInvoices } from "../../handlers/list-xero-invoices.handler.js";
 import { listXeroAgedReceivables } from "../../handlers/list-aged-receivables.handler.js";
 import { listXeroItems } from "../../handlers/list-xero-items.handler.js";
 import { listXeroQuotes } from "../../handlers/list-xero-quotes.handler.js";
+import { listXeroReportBalanceSheet } from "../../handlers/list-xero-report-balance-sheet.handler.js";
 
 // Concurrency limiter class
 class ConcurrencyLimiter {
@@ -83,6 +84,10 @@ export default CreateXeroTool(
         limiter.run(() => listXeroProfitAndLoss(prevStartDate, prevEndDateStr)),
       // Budget summary for current month
       () => limiter.run(() => listXeroBudgetSummary(startDate)),
+      // Balance sheet for current month end
+      () => limiter.run(() => listXeroReportBalanceSheet({ date: endDateStr })),
+      // Balance sheet for previous month end
+      () => limiter.run(() => listXeroReportBalanceSheet({ date: prevEndDateStr })),
       // Contacts (first page only)
       () => limiter.run(() => listXeroContacts(1)),
       // Invoices (first page only)
@@ -100,6 +105,8 @@ export default CreateXeroTool(
       profitAndLoss,
       profitAndLossPrev,
       budgetSummary,
+      balanceSheet,
+      balanceSheetPrev,
       contacts,
       invoices,
       agedReceivables,
@@ -117,6 +124,8 @@ export default CreateXeroTool(
               profitAndLoss,
               profitAndLossPrev,
               budgetSummary,
+              balanceSheet,
+              balanceSheetPrev,
               contacts,
               invoices,
               agedReceivables,
