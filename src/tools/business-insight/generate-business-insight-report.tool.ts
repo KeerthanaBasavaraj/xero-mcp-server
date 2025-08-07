@@ -84,10 +84,6 @@ export default CreateXeroTool(
         limiter.run(() => listXeroProfitAndLoss(prevStartDate, prevEndDateStr)),
       // Budget summary for current month
       () => limiter.run(() => listXeroBudgetSummary(startDate)),
-      // Balance sheet for current month end
-      () => limiter.run(() => listXeroReportBalanceSheet({ date: endDateStr })),
-      // Balance sheet for previous month end
-      () => limiter.run(() => listXeroReportBalanceSheet({ date: prevEndDateStr })),
       // Contacts (first page only)
       () => limiter.run(() => listXeroContacts(1)),
       // Invoices (first page only)
@@ -98,6 +94,10 @@ export default CreateXeroTool(
       () => limiter.run(() => listXeroItems(1)),
       // Quotes (first page only)
       () => limiter.run(() => listXeroQuotes(1)),
+      // Balance sheet for current month end
+      () => limiter.run(() => listXeroReportBalanceSheet({ date: endDateStr })),
+      // Balance sheet for previous month end
+      () => limiter.run(() => listXeroReportBalanceSheet({ date: prevEndDateStr })),
     ];
 
     // Execute all API calls with concurrency limiting
@@ -105,13 +105,13 @@ export default CreateXeroTool(
       profitAndLoss,
       profitAndLossPrev,
       budgetSummary,
-      balanceSheet,
-      balanceSheetPrev,
       contacts,
       invoices,
       agedReceivables,
       items,
       quotes,
+      balanceSheet,
+      balanceSheetPrev,
     ] = await Promise.all(apiCalls.map((call) => call()));
 
     return {
@@ -124,13 +124,13 @@ export default CreateXeroTool(
               profitAndLoss,
               profitAndLossPrev,
               budgetSummary,
-              balanceSheet,
-              balanceSheetPrev,
               contacts,
               invoices,
               agedReceivables,
               items,
               quotes,
+              balanceSheet,
+              balanceSheetPrev,
             },
             null,
             2,
