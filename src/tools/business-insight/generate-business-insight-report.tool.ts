@@ -5,9 +5,11 @@ import { listXeroBudgetSummary } from "../../handlers/list-xero-budget-summary.h
 import { listXeroContacts } from "../../handlers/list-xero-contacts.handler.js";
 import { listXeroInvoices } from "../../handlers/list-xero-invoices.handler.js";
 import { listXeroAgedReceivables } from "../../handlers/list-aged-receivables.handler.js";
+import { listXeroAgedPayables } from "../../handlers/list-aged-payables.handler.js";
 import { listXeroItems } from "../../handlers/list-xero-items.handler.js";
 import { listXeroQuotes } from "../../handlers/list-xero-quotes.handler.js";
 import { listXeroReportBalanceSheet } from "../../handlers/list-xero-report-balance-sheet.handler.js";
+import { listXeroBankTransactions } from "../../handlers/list-xero-bank-transactions.handler.js";
 
 // Concurrency limiter class
 class ConcurrencyLimiter {
@@ -88,12 +90,16 @@ export default CreateXeroTool(
       () => limiter.run(() => listXeroReportBalanceSheet({ date: endDateStr })),
       // Balance sheet for previous month end
       () => limiter.run(() => listXeroReportBalanceSheet({ date: prevEndDateStr })),
+      // Aged receivables (no filters)
+      () => limiter.run(() => listXeroAgedReceivables()),
+      // Aged payables (no filters)
+      () => limiter.run(() => listXeroAgedPayables()),
+      // Bank transactions for current month (first page)
+      () => limiter.run(() => listXeroBankTransactions(1)),
       // Contacts (first page only)
       () => limiter.run(() => listXeroContacts(1)),
       // Invoices (first page only)
       () => limiter.run(() => listXeroInvoices(1)),
-      // Aged receivables (no filters)
-      () => limiter.run(() => listXeroAgedReceivables()),
       // Items (first page only)
       () => limiter.run(() => listXeroItems(1)),
       // Quotes (first page only)
@@ -107,9 +113,11 @@ export default CreateXeroTool(
       budgetSummary,
       balanceSheet,
       balanceSheetPrev,
+      agedReceivables,
+      agedPayables,
+      bankTransactions,
       contacts,
       invoices,
-      agedReceivables,
       items,
       quotes,
     ] = await Promise.all(apiCalls.map((call) => call()));
@@ -126,9 +134,11 @@ export default CreateXeroTool(
               budgetSummary,
               balanceSheet,
               balanceSheetPrev,
+              agedReceivables,
+              agedPayables,
+              bankTransactions,
               contacts,
               invoices,
-              agedReceivables,
               items,
               quotes,
             },
