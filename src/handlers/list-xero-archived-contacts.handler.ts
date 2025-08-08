@@ -4,20 +4,23 @@ import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 import { getClientHeaders } from "../helpers/get-client-headers.js";
 
-async function getArchivedContacts(page?: number, pageSize?: number): Promise<{ contacts: Contact[], pagination?: any }> {
+async function getArchivedContacts(): Promise<{ contacts: Contact[], pagination?: any }> {
   await xeroClient.authenticate();
+
+  // Use where condition to filter for archived contacts directly
+  const where = 'ContactStatus=="ARCHIVED"';
 
   const contacts = await xeroClient.accountingApi.getContacts(
     xeroClient.tenantId,
     undefined, // ifModifiedSince
-    undefined, // where
+    where, // where - filter for archived contacts
     undefined, // order
     undefined, // iDs
-    page, // page
-    true, // includeArchived - always true for archived contacts
+    undefined, // page - no pagination needed
+    true, // includeArchived - still include archived
     true, // summaryOnly
     undefined, // searchTerm
-    pageSize, // pageSize
+    undefined, // pageSize - no pagination needed
     getClientHeaders(),
   );
   return {
@@ -29,11 +32,11 @@ async function getArchivedContacts(page?: number, pageSize?: number): Promise<{ 
 /**
  * List all archived contacts from Xero
  */
-export async function listXeroArchivedContacts(page?: number, pageSize?: number): Promise<
+export async function listXeroArchivedContacts(): Promise<
   XeroClientResponse<{ contacts: Contact[], pagination?: any }>
 > {
   try {
-    const result = await getArchivedContacts(page, pageSize);
+    const result = await getArchivedContacts();
 
     return {
       result: result,

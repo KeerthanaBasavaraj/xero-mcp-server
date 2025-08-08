@@ -1,19 +1,13 @@
 import { listXeroArchivedContacts } from "../../handlers/list-xero-archived-contacts.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
-import { formatPaginationInfo } from "../../helpers/format-pagination.js";
 import { z } from "zod";
 
 const ListArchivedContactsTool = CreateXeroTool(
   "list-archived-contacts",
   "List all archived contacts in Xero. Use this tool when user asks for 'deleted contacts' or 'archived contacts' OR similar queries. This shows only contacts that have been archived (deleted) in Xero.",
-  {
-    page: z.number().optional().describe("Optional page number to retrieve for pagination. \
-      If not provided, the first page will be returned."),
-    pageSize: z.number().optional().default(10).describe("Number of archived contacts to retrieve per page. Default is 10."),
-  },
-  async (params) => {
-    const { page, pageSize } = params;
-    const response = await listXeroArchivedContacts(page, pageSize);
+  {},
+  async () => {
+    const response = await listXeroArchivedContacts();
 
     if (response.isError) {
       return {
@@ -27,17 +21,13 @@ const ListArchivedContactsTool = CreateXeroTool(
     }
 
     const result = response.result;
-    const allContacts = result?.contacts || [];
-    const pagination = result?.pagination;
-
-    // Filter to show only archived contacts
-    const archivedContacts = allContacts.filter(contact => contact.contactStatus === 'ARCHIVED' as any);
+    const archivedContacts = result?.contacts || [];
 
     return {
       content: [
         {
           type: "text" as const,
-          text: `Found ${archivedContacts.length} archived contacts${page ? ` (page ${page})` : ''}:`,
+          text: `Found ${archivedContacts.length} archived contacts:`,
         },
         ...(archivedContacts.map((contact) => ({
           type: "text" as const,
@@ -79,11 +69,6 @@ const ListArchivedContactsTool = CreateXeroTool(
             .filter(Boolean)
             .join("\n"),
         })) || []),
-        // Add pagination information if available
-        ...(pagination ? [{
-          type: "text" as const,
-          text: formatPaginationInfo(pagination, page)
-        }] : []),
       ],
     };
   },
