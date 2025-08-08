@@ -5,7 +5,7 @@ import { z } from "zod";
 
 const ListArchivedContactsTool = CreateXeroTool(
   "list-archived-contacts",
-  "List all archived contacts in Xero. Use this tool when user asks for 'deleted contacts' or 'archived contacts'. This shows only contacts that have been archived (deleted) in Xero.",
+  "List all archived contacts in Xero. Use this tool when user asks for 'deleted contacts' or 'archived contacts' OR similar queries. This shows only contacts that have been archived (deleted) in Xero.",
   {
     page: z.number().optional().describe("Optional page number to retrieve for pagination. \
       If not provided, the first page will be returned."),
