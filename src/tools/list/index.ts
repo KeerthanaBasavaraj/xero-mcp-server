@@ -1,6 +1,7 @@
 import ListAccountsTool from "./list-accounts.tool.js";
 import ListAgedPayables from "./list-aged-payables.tool.js";
 import ListAgedReceivables from "./list-aged-receivables.tool.js";
+import ListArchivedContactsTool from "./list-archived-contacts.tool.js";
 import ListBankTransactionsTool from "./list-bank-transactions.tool.js";
 import ListContactsTool from "./list-contacts.tool.js";
 import ListCreditNotesTool from "./list-credit-notes.tool.js";
@@ -30,6 +31,7 @@ import ListXeroReceiptsTool from "./list-xero-receipts.tool.js";
 
 export const ListTools = [
   ListAccountsTool,
+  ListArchivedContactsTool,
   ListContactsTool,
   ListCreditNotesTool,
   ListInvoicesTool,
