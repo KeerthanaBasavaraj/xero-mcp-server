@@ -12,10 +12,23 @@ const ListContactsTool = CreateXeroTool(
       If not provided, the first page will be returned. If 100 contacts are returned, \
       call this tool again with the next page number."),
     pageSize: z.number().optional().default(10).describe("Number of contacts to retrieve per page. Default is 10."),
+    searchTerm: z.string().optional().describe("Optional search term to filter contacts by name or email address. \
+      This parameter allows you to search for specific contacts by entering part of their name or email. \
+      For example: 'john' will find contacts with 'john' in their name or email, 'john.doe@example.com' will find \
+      contacts with that email address, 'cafe' will find contacts with 'cafe' in their name. \
+      The search is case-insensitive and will match partial strings. Leave empty to retrieve all contacts."),
+    phoneFilter: z.string().optional().describe("Optional phone number filter to find contacts with specific phone numbers. \
+      This parameter allows you to search for contacts by their phone number. \
+      For example: '555' will find contacts with '555' in their phone number, '+1-555-1234' will find contacts with that exact phone number. \
+      The search is case-insensitive and will match partial strings. Leave empty to retrieve all contacts."),
+    addressFilter: z.string().optional().describe("Optional address filter to find contacts with specific address information. \
+      This parameter allows you to search for contacts by their address components (street, city, state, postal code, country). \
+      For example: 'New York' will find contacts with 'New York' in their address, '123 Main St' will find contacts with that street address. \
+      The search is case-insensitive and will match partial strings. Leave empty to retrieve all contacts."),
   },
   async (params) => {
-    const { page, pageSize } = params;
-    const response = await listXeroContacts(page, pageSize);
+    const { page, pageSize, searchTerm, phoneFilter, addressFilter } = params;
+    const response = await listXeroContacts(page, pageSize, searchTerm, phoneFilter, addressFilter);
 
     if (response.isError) {
       return {
@@ -36,7 +49,7 @@ const ListContactsTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${contacts?.length || 0} contacts${page ? ` (page ${page})` : ''}:`,
+          text: `Found ${contacts?.length || 0} contacts${page ? ` (page ${page})` : ''}${searchTerm ? ` matching "${searchTerm}"` : ''}${phoneFilter ? ` with phone "${phoneFilter}"` : ''}${addressFilter ? ` with address "${addressFilter}"` : ''}:`,
         },
         ...(contacts?.map((contact) => ({
           type: "text" as const,

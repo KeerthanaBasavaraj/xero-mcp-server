@@ -15,16 +15,23 @@ const ListInvoicesTool = CreateXeroTool(
   If they want the next page, call this tool again with the next page number \
   and the contact or invoice number if one was provided in the previous call.",
   {
-    page: z.number(),
+    page: z.number().optional().describe("Optional page number to retrieve for pagination. \
+      If not provided, the first page will be returned. If 100 invoices are returned, \
+      call this tool again with the next page number."),
     contactIds: z.array(z.string()).optional(),
     invoiceNumbers: z
       .array(z.string())
       .optional()
       .describe("If provided, invoice line items will also be returned"),
     pageSize: z.number().optional().default(10).describe("Number of invoices to retrieve per page. Default is 10."),
+    searchTerm: z.string().optional().describe("Optional search term to filter invoices by invoice number, reference, or contact name. \
+      This parameter allows you to search for specific invoices by entering part of the invoice number, reference, or contact name. \
+      For example: 'INV-0005' will find invoices with that invoice number, 'Monthly Support' will find invoices with that reference, \
+      'Hamilton Smith' will find invoices for contacts with that name. The search is case-insensitive and will match partial strings. \
+      Leave empty to retrieve all invoices."),
   },
-  async ({ page, contactIds, invoiceNumbers, pageSize }) => {
-    const response = await listXeroInvoices(page, contactIds, invoiceNumbers, pageSize);
+  async ({ page, contactIds, invoiceNumbers, pageSize, searchTerm }) => {
+    const response = await listXeroInvoices(page, contactIds, invoiceNumbers, pageSize, searchTerm);
     if (response.error !== null) {
       return {
         content: [
@@ -45,7 +52,7 @@ const ListInvoicesTool = CreateXeroTool(
       content: [
         {
           type: "text" as const,
-          text: `Found ${invoices?.length || 0} invoices:`,
+          text: `Found ${invoices?.length || 0} invoices${searchTerm ? ` matching "${searchTerm}"` : ''}:`,
         },
         ...(invoices?.map((invoice) => ({
           type: "text" as const,

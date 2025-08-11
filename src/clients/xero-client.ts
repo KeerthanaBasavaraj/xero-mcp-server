@@ -29,7 +29,7 @@ args.forEach((val, index) => {
 const client_id = process.env.XERO_CLIENT_ID;
 const client_secret = process.env.XERO_CLIENT_SECRET;
 const bearer_token = runtimeBearerToken || process.env.XERO_CLIENT_BEARER_TOKEN;
-const tenant_id = runtimeTenantId;
+const tenant_id = runtimeTenantId || process.env.XERO_CLIENT_TENANT_ID;
 const grant_type = "client_credentials";
 
 if (!bearer_token && (!client_id || !client_secret)) {
