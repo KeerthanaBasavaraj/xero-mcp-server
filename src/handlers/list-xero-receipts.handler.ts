@@ -3,12 +3,20 @@ import { Invoice } from "xero-node";
 import { XeroClientResponse } from "../types/tool-response.js";
 import { formatError } from "../helpers/format-error.js";
 
-async function getReceipts(page?: number): Promise<Invoice[]> {
+async function getReceipts(page?: number, type?: "all" | "ACCREC" | "ACCPAY"): Promise<Invoice[]> {
   await xeroClient.authenticate();
+  
+  let whereClause = 'Status=="PAID"';
+  if (type && type !== "all") {
+    whereClause += ` AND Type=="${type}"`;
+  } else {
+    whereClause += ' AND (Type=="ACCREC" OR Type=="ACCPAY")';
+  }
+  
   const result = await xeroClient.accountingApi.getInvoices(
     xeroClient.tenantId,
     undefined, // ifModifiedSince
-    'Status=="PAID" AND Type=="ACCREC"', // where
+    whereClause, // where
     "UpdatedDateUTC DESC", // order
     undefined, // iDs
     undefined, // invoiceNumbers
@@ -24,12 +32,13 @@ async function getReceipts(page?: number): Promise<Invoice[]> {
   );
   return result.body.invoices ?? [];
 }
+
 /**
  * List all receipts from Xero
  */
-export async function listXeroReceipts(page?: number): Promise<XeroClientResponse<Invoice[]>> {
+export async function listXeroReceipts(page?: number, type?: "all" | "ACCREC" | "ACCPAY"): Promise<XeroClientResponse<Invoice[]>> {
   try {
-    const receipts = await getReceipts(page);
+    const receipts = await getReceipts(page, type);
     return {
       result: receipts,
       isError: false,
