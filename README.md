@@ -116,6 +116,9 @@ NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_
 - `list-aged-receivables-by-contact`: Retrieves aged receivables for a contact
 - `list-aged-payables-by-contact`: Retrieves aged payables for a contact
 - `list-contact-groups`: Retrieve a list of contact groups
+- `list-xero-receipts`: Retrieve a list of receipts (paid invoices) with optional type and status filtering
+- `list-xero-bills`: Retrieve a list of bills (purchase invoices) with optional status filtering
+- `list-xero-receivables`: Retrieve a list of receivables (sales invoices) with optional status filtering
 - `create-contact`: Create a new contact
 - `create-credit-note`: Create a new credit note
 - `create-invoice`: Create a new invoice
