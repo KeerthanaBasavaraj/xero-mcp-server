@@ -27,8 +27,8 @@ import ListContactGroupsTool from "./list-contact-groups.tool.js";
 import ListAttachmentsTool from "./list-attachments.tool.js";
 import ListBudgetSummaryTool from "./list-budgets.tool.js";
 import ListXeroReceiptsTool from "./list-xero-receipts.tool.js";
-import ListXeroPaidBillsTool from "./list-xero-paid-bills.tool.js";
-import ListXeroPaidReceivablesTool from "./list-xero-paid-receivables.tool.js";
+import ListXeroBillsTool from "./list-xero-bills.tool.js";
+import ListXeroReceivablesTool from "./list-xero-receivables.tool.js";
 
 
 export const ListTools = [
@@ -61,6 +61,6 @@ export const ListTools = [
   ListAttachmentsTool,
   ListBudgetSummaryTool,
   ListXeroReceiptsTool,
-  ListXeroPaidBillsTool,
-  ListXeroPaidReceivablesTool,
+  ListXeroBillsTool,
+  ListXeroReceivablesTool,
 ];
