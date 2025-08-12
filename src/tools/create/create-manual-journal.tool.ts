@@ -11,7 +11,10 @@ const CreateManualJournalTool = CreateXeroTool(
   Retrieve a list of account codes in Xero to use for the journal lines.\
   Journal lines must contain at least two individual journal lines with account codes, \
   use basic accounting account types pairing when not specified, \
-  and make sure journal line pairs have credit and debit balanced.",
+  and make sure journal line pairs have credit and debit balanced.\
+  IMPORTANT: Before creating a manual journal, you MUST ask the user for confirmation with the exact details of the journal to be created. \
+  Show them the narration, manual journal lines (line amount, account code, description, tax type), date, line amount types, status, URL, and show on cash basis reports, then ask 'Do you want to proceed with creating this manual journal?' \
+  Only proceed after receiving explicit confirmation from the user.",
   {
     narration: z
       .string()

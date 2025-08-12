@@ -18,7 +18,10 @@ const UpdateQuoteTool = CreateXeroTool(
   Do not modify line items that have not been specified by the user. \
  When a quote is updated, a deep link to the quote in Xero is returned. \
  This deep link can be used to view the quote in Xero directly. \
- This link should be displayed to the user.",
+ This link should be displayed to the user.\
+ IMPORTANT: Before updating a quote, you MUST ask the user for confirmation with the exact details of the changes to be made. \
+ Show them the quote ID, line items, reference, terms, title, summary, quote number, contact ID, date, and expiry date changes, then ask 'Do you want to proceed with updating this quote?' \
+ Only proceed after receiving explicit confirmation from the user.",
   {
     quoteId: z.string(),
     lineItems: z.array(lineItemSchema).optional().describe(

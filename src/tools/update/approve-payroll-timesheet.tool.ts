@@ -7,7 +7,10 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const ApprovePayrollTimesheetTool = CreateXeroTool(
   "approve-timesheet",
-  `Approve a payroll timesheet in Xero by its ID.`,
+  `Approve a payroll timesheet in Xero by its ID.\
+  IMPORTANT: Before approving a payroll timesheet, you MUST ask the user for confirmation with the exact details of the timesheet to be approved. \
+  Show them the timesheet ID, then ask 'Do you want to proceed with approving this payroll timesheet?' \
+  Only proceed after receiving explicit confirmation from the user.`,
   {
     timesheetID: z.string().describe("The ID of the timesheet to approve."),
   },

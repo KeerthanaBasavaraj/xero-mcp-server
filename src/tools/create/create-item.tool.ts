@@ -16,7 +16,10 @@ const salesDetailsSchema = z.object({
 
 const CreateItemTool = CreateXeroTool(
   "create-item",
-  "Create an item in Xero.",
+  "Create an item in Xero.\
+  IMPORTANT: Before creating an item, you MUST ask the user for confirmation with the exact details of the item to be created. \
+  Show them the code, name, description, purchase description, purchase details, sales details, is tracked as inventory, and inventory asset account code, then ask 'Do you want to proceed with creating this item?' \
+  Only proceed after receiving explicit confirmation from the user.",
   {
     code: z.string(),
     name: z.string(),

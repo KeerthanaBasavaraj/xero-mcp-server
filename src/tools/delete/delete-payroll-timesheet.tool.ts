@@ -7,7 +7,10 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const DeletePayrollTimesheetTool = CreateXeroTool(
   "delete-timesheet",
-  `Delete an existing payroll timesheet in Xero by its ID.`,
+  `Delete an existing payroll timesheet in Xero by its ID.\
+  IMPORTANT: Before deleting a payroll timesheet, you MUST ask the user for confirmation with the exact details of the timesheet to be deleted. \
+  Show them the timesheet ID, then ask 'Do you want to proceed with deleting this payroll timesheet?' \
+  Only proceed after receiving explicit confirmation from the user.`,
   {
     timesheetID: z.string().describe("The ID of the timesheet to delete."),
   },

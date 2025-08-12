@@ -34,7 +34,10 @@ const UpdateInvoiceTool = CreateXeroTool(
   Do not modify line items that have not been specified by the user.\
   When an invoice is updated, a deep link to the invoice in Xero is returned.\
   This deep link can be used to view the invoice in Xero directly.\
-  This link should be displayed to the user.`,
+  This link should be displayed to the user.\
+  IMPORTANT: Before updating, deleting, voiding, or authorizing an invoice, you MUST ask the user for confirmation with the exact details of the changes to be made. \
+  Show them the invoice ID, what changes will be made (line items, reference, due date, date, contact ID, status, action), then ask 'Do you want to proceed with these changes?' \
+  Only proceed after receiving explicit confirmation from the user.`,
   {
     invoiceId: z.string().describe("The ID of the invoice to update."),
     lineItems: z.array(lineItemSchema).optional().describe(

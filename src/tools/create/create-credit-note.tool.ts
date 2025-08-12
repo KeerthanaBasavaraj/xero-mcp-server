@@ -16,7 +16,10 @@ const CreateCreditNoteTool = CreateXeroTool(
   "Create a credit note in Xero.\
  When a credit note is created, a deep link to the credit note in Xero is returned. \
  This deep link can be used to view the credit note in Xero directly. \
- This link should be displayed to the user.",
+ This link should be displayed to the user. \
+ IMPORTANT: Before creating a credit note, you MUST ask the user for confirmation with the exact details of the credit note to be created. \
+ Show them the contact ID, line items (description, quantity, unit amount, account code, tax type), and reference, then ask 'Do you want to proceed with creating this credit note?' \
+ Only proceed after receiving explicit confirmation from the user.",
   {
     contactId: z.string(),
     lineItems: z.array(lineItemSchema),

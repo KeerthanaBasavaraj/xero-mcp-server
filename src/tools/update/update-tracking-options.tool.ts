@@ -11,7 +11,10 @@ const trackingOptionSchema = z.object({
 
 const UpdateTrackingOptionsTool = CreateXeroTool(
   "update-tracking-options",
-  `Updates tracking options for a tracking category in Xero.`,
+  `Updates tracking options for a tracking category in Xero.\
+  IMPORTANT: Before updating tracking options, you MUST ask the user for confirmation with the exact details of the changes to be made. \
+  Show them the tracking category ID and the options to be updated (tracking option ID, name, status), then ask 'Do you want to proceed with updating these tracking options?' \
+  Only proceed after receiving explicit confirmation from the user.`,
   {
     trackingCategoryId: z.string(),
     options: z.array(trackingOptionSchema).max(10)

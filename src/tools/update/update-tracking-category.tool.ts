@@ -4,7 +4,10 @@ import { updateXeroTrackingCategory } from "../../handlers/update-xero-tracking-
 
 const UpdateTrackingCategoryTool = CreateXeroTool(
   "update-tracking-category",
-  `Updates an existing tracking category in Xero.`,
+  `Updates an existing tracking category in Xero.\
+  IMPORTANT: Before updating a tracking category, you MUST ask the user for confirmation with the exact details of the changes to be made. \
+  Show them the tracking category ID, name, and status changes, then ask 'Do you want to proceed with updating this tracking category?' \
+  Only proceed after receiving explicit confirmation from the user.`,
   {
     trackingCategoryId: z.string(),
     name: z.string().optional(),

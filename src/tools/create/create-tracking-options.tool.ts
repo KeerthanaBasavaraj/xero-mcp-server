@@ -5,7 +5,10 @@ import { createXeroTrackingOptions } from "../../handlers/create-xero-tracking-o
 
 const CreateTrackingOptionsTool = CreateXeroTool(
   "create-tracking-options",
-  `Create tracking options for a tracking category in Xero.`,
+  `Create tracking options for a tracking category in Xero.\
+  IMPORTANT: Before creating tracking options, you MUST ask the user for confirmation with the exact details of the tracking options to be created. \
+  Show them the tracking category ID and option names, then ask 'Do you want to proceed with creating these tracking options?' \
+  Only proceed after receiving explicit confirmation from the user.`,
   {
     trackingCategoryId: z.string(),
     optionNames: z.array(z.string()).max(10)

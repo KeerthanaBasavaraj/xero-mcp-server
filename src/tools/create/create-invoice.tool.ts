@@ -29,7 +29,10 @@ const CreateInvoiceTool = CreateXeroTool(
   "Create an invoice in Xero.\
  When an invoice is created, a deep link to the invoice in Xero is returned. \
  This deep link can be used to view the invoice in Xero directly. \
- This link should be displayed to the user.",
+ This link should be displayed to the user. \
+ IMPORTANT: Before creating an invoice, you MUST ask the user for confirmation with the exact details of the invoice to be created. \
+ Show them the contact ID, line items (description, quantity, unit amount, account code, tax type), invoice type, reference, date, and due date, then ask 'Do you want to proceed with creating this invoice?' \
+ Only proceed after receiving explicit confirmation from the user.",
   {
     contactId: z.string().describe("The ID of the contact to create the invoice for. \
       Can be obtained from the list-contacts tool."),

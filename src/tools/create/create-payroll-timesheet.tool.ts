@@ -9,7 +9,10 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 const CreatePayrollTimesheetTool = CreateXeroTool(
   "create-timesheet",
   `Create a new payroll timesheet in Xero.
-This allows you to specify details such as the employee ID, payroll calendar ID, start and end dates, and timesheet lines.`,
+This allows you to specify details such as the employee ID, payroll calendar ID, start and end dates, and timesheet lines.\
+IMPORTANT: Before creating a payroll timesheet, you MUST ask the user for confirmation with the exact details of the timesheet to be created. \
+Show them the payroll calendar ID, employee ID, start date, end date, and timesheet lines (earnings rate ID, number of units, date), then ask 'Do you want to proceed with creating this payroll timesheet?' \
+Only proceed after receiving explicit confirmation from the user.`,
   {
     payrollCalendarID: z.string().describe("The ID of the payroll calendar."),
     employeeID: z.string().describe("The ID of the employee."),

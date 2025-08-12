@@ -16,7 +16,10 @@ const CreateBankTransactionTool = CreateXeroTool(
   `Create a bank transaction in Xero.
   When a bank transaction is created, a deep link to the bank transaction in Xero is returned.
   This deep link can be used to view the bank transaction in Xero directly.
-  This link should be displayed to the user.`,
+  This link should be displayed to the user.
+  IMPORTANT: Before creating a bank transaction, you MUST ask the user for confirmation with the exact details of the transaction to be created. \
+  Show them the type (RECEIVE/SPEND), bank account ID, contact ID, line items (description, quantity, unit amount, account code, tax type), reference, and date, then ask 'Do you want to proceed with creating this bank transaction?' \
+  Only proceed after receiving explicit confirmation from the user.`,
   {
     type: z.enum(["RECEIVE", "SPEND"]),
     bankAccountId: z.string(),

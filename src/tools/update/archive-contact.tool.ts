@@ -10,7 +10,10 @@ const ArchiveContactTool = CreateXeroTool(
    Note: Xero does not support direct contact deletion. Instead, contacts are archived to maintain data integrity and audit trails.
    When a contact is archived, a deep link to the contact in Xero is returned. 
    This deep link can be used to view the contact in Xero directly. 
-   This link should be displayed to the user.`,
+   This link should be displayed to the user.
+   IMPORTANT: Before archiving a contact, you MUST ask the user for confirmation with the exact details of the contact to be archived. \
+   Show them the contact ID and contact name, then ask 'Do you want to proceed with archiving this contact?' \
+   Only proceed after receiving explicit confirmation from the user.`,
   {
     contactId: z.string().describe("The ID of the contact to archive."),
   },

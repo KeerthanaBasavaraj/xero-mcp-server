@@ -4,7 +4,9 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const CreateAttachmentTool = CreateXeroTool(
   "create-attachment",
-  "Upload an attachment to a Xero entity (invoice, contact, credit note, etc.).\n\nRequired arguments:\n- entityType: The type of entity to upload the attachment to (e.g., invoices, contacts, creditnotes, etc.).\n- entityId: The ID of the entity to upload the attachment to.\n- fileUrl: The public URL of the file to upload.\n\nOptional arguments:\n- fileName: The file name to use for the attachment (if not provided, will use the name from the URL).\n\nOnly supported file types: PDF, JPG, JPEG, PNG, DOC, DOCX, XLS, XLSX, CSV, TIFF, GIF, XML.",
+  "Upload an attachment to a Xero entity (invoice, contact, credit note, etc.).\n\nRequired arguments:\n- entityType: The type of entity to upload the attachment to (e.g., invoices, contacts, creditnotes, etc.).\n- entityId: The ID of the entity to upload the attachment to.\n- fileUrl: The public URL of the file to upload.\n\nOptional arguments:\n- fileName: The file name to use for the attachment (if not provided, will use the name from the URL).\n\nOnly supported file types: PDF, JPG, JPEG, PNG, DOC, DOCX, XLS, XLSX, CSV, TIFF, GIF, XML.\n\nIMPORTANT: Before uploading an attachment, you MUST ask the user for confirmation with the exact details of the attachment to be uploaded. \
+  Show them the entity type, entity ID, file URL, and file name, then ask 'Do you want to proceed with uploading this attachment?' \
+  Only proceed after receiving explicit confirmation from the user.",
   {
     entityType: z
       .enum([

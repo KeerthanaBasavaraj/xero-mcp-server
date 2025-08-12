@@ -16,7 +16,10 @@ const UpdateBankTransactionTool = CreateXeroTool(
   `Update a bank transaction in Xero.
   When a bank transaction is updated, a deep link to the bank transaction in Xero is returned.
   This deep link can be used to view the bank transaction in Xero directly.
-  This link should be displayed to the user.`,
+  This link should be displayed to the user.
+  IMPORTANT: Before updating a bank transaction, you MUST ask the user for confirmation with the exact details of the changes to be made. \
+  Show them the bank transaction ID, type, contact ID, line items, reference, and date changes, then ask 'Do you want to proceed with updating this bank transaction?' \
+  Only proceed after receiving explicit confirmation from the user.`,
   {
     bankTransactionId: z.string(),
     type: z.enum(["RECEIVE", "SPEND"]).optional(),

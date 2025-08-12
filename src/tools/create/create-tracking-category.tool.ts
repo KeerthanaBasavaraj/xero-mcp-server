@@ -4,7 +4,10 @@ import { createXeroTrackingCategory } from "../../handlers/create-xero-tracking-
 
 const CreateTrackingCategoryTool = CreateXeroTool(
   "create-tracking-category",
-  `Create a tracking category in Xero.`,
+  `Create a tracking category in Xero.\
+  IMPORTANT: Before creating a tracking category, you MUST ask the user for confirmation with the exact details of the tracking category to be created. \
+  Show them the name, then ask 'Do you want to proceed with creating this tracking category?' \
+  Only proceed after receiving explicit confirmation from the user.`,
   {
     name: z.string()
   },

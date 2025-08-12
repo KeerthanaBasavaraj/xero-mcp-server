@@ -8,7 +8,10 @@ import { updateXeroManualJournal } from "../../handlers/update-xero-manual-journ
 const UpdateManualJournalTool = CreateXeroTool(
   "update-manual-journal",
   "Update a manual journal in Xero. Only works on draft manual journals.\
-  Do not modify line items or parameters that have not been specified by the user.",
+  Do not modify line items or parameters that have not been specified by the user.\
+  IMPORTANT: Before updating a manual journal, you MUST ask the user for confirmation with the exact details of the changes to be made. \
+  Show them the narration, manual journal ID, manual journal lines, date, line amount types, status, URL, and show on cash basis reports changes, then ask 'Do you want to proceed with updating this manual journal?' \
+  Only proceed after receiving explicit confirmation from the user.",
   {
     narration: z
       .string()

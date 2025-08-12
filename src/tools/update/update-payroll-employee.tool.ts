@@ -4,7 +4,10 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
 const UpdatePayrollEmployeeTool = CreateXeroTool(
   "update-payroll-employee",
-  "Update a payroll employee in Xero Payroll AU. Only employeeID is required. All other fields are optional and will only be updated if provided.",
+  "Update a payroll employee in Xero Payroll AU. Only employeeID is required. All other fields are optional and will only be updated if provided.\
+  IMPORTANT: Before updating a payroll employee, you MUST ask the user for confirmation with the exact details of the changes to be made. \
+  Show them the employee ID and all the fields that will be updated (first name, last name, email, date of birth, gender, start date, title, middle names, address details, phone number, job title), then ask 'Do you want to proceed with updating this payroll employee?' \
+  Only proceed after receiving explicit confirmation from the user.",
   {
     employeeID: z.string().describe("The Xero employee ID to update (required)."),
     firstName: z.string().optional().describe("First name of the employee (optional)."),
