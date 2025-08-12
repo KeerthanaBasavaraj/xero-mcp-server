@@ -14,12 +14,14 @@ const lineItemSchema = z.object({
 const UpdateBankTransactionTool = CreateXeroTool(
   "update-bank-transaction",
   `Update a bank transaction in Xero.
-  When a bank transaction is updated, a deep link to the bank transaction in Xero is returned.
-  This deep link can be used to view the bank transaction in Xero directly.
-  This link should be displayed to the user.
-  IMPORTANT: Before updating a bank transaction, you MUST ask the user for confirmation with the exact details of the changes to be made. \
-  Show them the bank transaction ID, type, contact ID, line items, reference, and date changes, then ask 'Do you want to proceed with updating this bank transaction?' \
-  Only proceed after receiving explicit confirmation from the user.`,
+          When a bank transaction is updated, a deep link to the bank transaction in Xero is returned.
+        This deep link can be used to view the bank transaction in Xero directly.
+        This link should be displayed to the user.
+        IMPORTANT: Before updating a bank transaction, you MUST ask the user for confirmation with the exact details of the changes to be made. \
+        Show them the bank transaction ID, type, contact ID, line items, reference, and date changes, then ask 'Do you want to proceed with updating this bank transaction?' \
+        Only proceed after receiving explicit confirmation from the user. \
+        RE-CONFIRMATION: If the user initially cancels the operation but then says 'yes' to proceed, you MUST ask for re-confirmation by showing the exact changes again and asking 'Please confirm the bank transaction changes once more before proceeding: [show changes]. Do you want to proceed with updating this bank transaction?' \
+        Only proceed if the user confirms again.`,
   {
     bankTransactionId: z.string(),
     type: z.enum(["RECEIVE", "SPEND"]).optional(),

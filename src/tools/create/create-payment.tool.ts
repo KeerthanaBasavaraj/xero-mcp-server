@@ -11,12 +11,14 @@ const CreatePaymentTool = CreateXeroTool(
  The amount must be positive and should not exceed the remaining amount due on the invoice. \
  A payment can only be created for an invoice that is status AUTHORIZED \
  A payment can only be created for an invoice that is not fully paid \
- When a payment is created, a deep link to the payment in Xero is returned. \
- This deep link can be used to view the payment in Xero directly. \
- This link should be displayed to the user. \
- IMPORTANT: Before creating a payment, you MUST ask the user for confirmation with the exact details of the payment to be created. \
- Show them the invoice ID, account ID, amount, date, and reference, then ask 'Do you want to proceed with creating this payment?' \
- Only proceed after receiving explicit confirmation from the user.",
+         When a payment is created, a deep link to the payment in Xero is returned. \
+        This deep link can be used to view the payment in Xero directly. \
+        This link should be displayed to the user. \
+        IMPORTANT: Before creating a payment, you MUST ask the user for confirmation with the exact details of the payment to be created. \
+        Show them the invoice ID, account ID, amount, date, and reference, then ask 'Do you want to proceed with creating this payment?' \
+        Only proceed after receiving explicit confirmation from the user. \
+        RE-CONFIRMATION: If the user initially cancels the operation but then says 'yes' to proceed, you MUST ask for re-confirmation by showing the exact payment details again and asking 'Please confirm the payment details once more before proceeding: [show details]. Do you want to proceed with creating this payment?' \
+        Only proceed if the user confirms again.",
   {
     invoiceId: z.string().describe("The ID of the invoice to pay"),
     accountId: z

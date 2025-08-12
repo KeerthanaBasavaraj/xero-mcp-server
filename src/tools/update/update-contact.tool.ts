@@ -7,12 +7,14 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 const UpdateContactTool = CreateXeroTool(
   "update-contact",
   "Update a contact in Xero.\
- When a contact is updated, a deep link to the contact in Xero is returned. \
- This deep link can be used to view the contact in Xero directly. \
- This link should be displayed to the user. \
- IMPORTANT: Before updating a contact, you MUST ask the user for confirmation with the exact details of the changes to be made. \
- Show them the contact ID, name, first name, last name, email, phone, and address details, then ask 'Do you want to proceed with updating this contact?' \
- Only proceed after receiving explicit confirmation from the user.",
+         When a contact is updated, a deep link to the contact in Xero is returned. \
+        This deep link can be used to view the contact in Xero directly. \
+        This link should be displayed to the user. \
+        IMPORTANT: Before updating a contact, you MUST ask the user for confirmation with the exact details of the changes to be made. \
+        Show them the contact ID, name, first name, last name, email, phone, and address details, then ask 'Do you want to proceed with updating this contact?' \
+        Only proceed after receiving explicit confirmation from the user. \
+        RE-CONFIRMATION: If the user initially cancels the operation but then says 'yes' to proceed, you MUST ask for re-confirmation by showing the exact changes again and asking 'Please confirm the contact changes once more before proceeding: [show changes]. Do you want to proceed with updating this contact?' \
+        Only proceed if the user confirms again.",
   {
     contactId: z.string(),
     name: z.string(),

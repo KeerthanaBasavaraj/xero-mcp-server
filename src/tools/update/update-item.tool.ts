@@ -14,12 +14,14 @@ const salesDetailsSchema = z.object({
   accountCode: z.string().optional(),
 });
 
-const UpdateItemTool = CreateXeroTool(
-  "update-item",
-  "Update an item in Xero.\
-  IMPORTANT: Before updating an item, you MUST ask the user for confirmation with the exact details of the changes to be made. \
-  Show them the item ID, code, name, description, purchase description, purchase details, sales details, is tracked as inventory, and inventory asset account code changes, then ask 'Do you want to proceed with updating this item?' \
-  Only proceed after receiving explicit confirmation from the user.",
+        const UpdateItemTool = CreateXeroTool(
+          "update-item",
+          "Update an item in Xero.\
+          IMPORTANT: Before updating an item, you MUST ask the user for confirmation with the exact details of the changes to be made. \
+          Show them the item ID, code, name, description, purchase description, purchase details, sales details, is tracked as inventory, and inventory asset account code changes, then ask 'Do you want to proceed with updating this item?' \
+          Only proceed after receiving explicit confirmation from the user. \
+          RE-CONFIRMATION: If the user initially cancels the operation but then says 'yes' to proceed, you MUST ask for re-confirmation by showing the exact changes again and asking 'Please confirm the item changes once more before proceeding: [show changes]. Do you want to proceed with updating this item?' \
+          Only proceed if the user confirms again.",
   {
     itemId: z.string(),
     code: z.string(),

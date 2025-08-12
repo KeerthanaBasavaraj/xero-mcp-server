@@ -8,12 +8,14 @@ const ArchiveContactTool = CreateXeroTool(
   "archive-contact",
   `Archive a contact in Xero by setting its status to ARCHIVED. 
    Note: Xero does not support direct contact deletion. Instead, contacts are archived to maintain data integrity and audit trails.
-   When a contact is archived, a deep link to the contact in Xero is returned. 
-   This deep link can be used to view the contact in Xero directly. 
-   This link should be displayed to the user.
-   IMPORTANT: Before archiving a contact, you MUST ask the user for confirmation with the exact details of the contact to be archived. \
-   Show them the contact ID and contact name, then ask 'Do you want to proceed with archiving this contact?' \
-   Only proceed after receiving explicit confirmation from the user.`,
+           When a contact is archived, a deep link to the contact in Xero is returned. 
+        This deep link can be used to view the contact in Xero directly. 
+        This link should be displayed to the user.
+        IMPORTANT: Before archiving a contact, you MUST ask the user for confirmation with the exact details of the contact to be archived. \
+        Show them the contact ID and contact name, then ask 'Do you want to proceed with archiving this contact?' \
+        Only proceed after receiving explicit confirmation from the user. \
+        RE-CONFIRMATION: If the user initially cancels the operation but then says 'yes' to proceed, you MUST ask for re-confirmation by showing the exact contact details again and asking 'Please confirm the contact archiving once more before proceeding: [show details]. Do you want to proceed with archiving this contact?' \
+        Only proceed if the user confirms again.`,
   {
     contactId: z.string().describe("The ID of the contact to archive."),
   },

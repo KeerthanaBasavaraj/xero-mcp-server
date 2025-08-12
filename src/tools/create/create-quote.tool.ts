@@ -14,12 +14,14 @@ const lineItemSchema = z.object({
 const CreateQuoteTool = CreateXeroTool(
   "create-quote",
   "Create a quote in Xero.\
- When a quote is created, a deep link to the quote in Xero is returned. \
- This deep link can be used to view the quote in Xero directly. \
- This link should be displayed to the user. \
- IMPORTANT: Before creating a quote, you MUST ask the user for confirmation with the exact details of the quote to be created. \
- Show them the contact ID, line items (description, quantity, unit amount, account code, tax type), reference, quote number, terms, title, and summary, then ask 'Do you want to proceed with creating this quote?' \
- Only proceed after receiving explicit confirmation from the user.",
+         When a quote is created, a deep link to the quote in Xero is returned. \
+        This deep link can be used to view the quote in Xero directly. \
+        This link should be displayed to the user. \
+        IMPORTANT: Before creating a quote, you MUST ask the user for confirmation with the exact details of the quote to be created. \
+        Show them the contact ID, line items (description, quantity, unit amount, account code, tax type), reference, quote number, terms, title, and summary, then ask 'Do you want to proceed with creating this quote?' \
+        Only proceed after receiving explicit confirmation from the user. \
+        RE-CONFIRMATION: If the user initially cancels the operation but then says 'yes' to proceed, you MUST ask for re-confirmation by showing the exact quote details again and asking 'Please confirm the quote details once more before proceeding: [show details]. Do you want to proceed with creating this quote?' \
+        Only proceed if the user confirms again.",
   {
     contactId: z.string(),
     lineItems: z.array(lineItemSchema),

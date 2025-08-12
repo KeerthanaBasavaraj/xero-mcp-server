@@ -9,12 +9,14 @@ const trackingOptionSchema = z.object({
   status: z.enum(["ACTIVE", "ARCHIVED"]).optional()
 });
 
-const UpdateTrackingOptionsTool = CreateXeroTool(
-  "update-tracking-options",
-  `Updates tracking options for a tracking category in Xero.\
-  IMPORTANT: Before updating tracking options, you MUST ask the user for confirmation with the exact details of the changes to be made. \
-  Show them the tracking category ID and the options to be updated (tracking option ID, name, status), then ask 'Do you want to proceed with updating these tracking options?' \
-  Only proceed after receiving explicit confirmation from the user.`,
+        const UpdateTrackingOptionsTool = CreateXeroTool(
+          "update-tracking-options",
+          `Updates tracking options for a tracking category in Xero.\
+          IMPORTANT: Before updating tracking options, you MUST ask the user for confirmation with the exact details of the changes to be made. \
+          Show them the tracking category ID and the options to be updated (tracking option ID, name, status), then ask 'Do you want to proceed with updating these tracking options?' \
+          Only proceed after receiving explicit confirmation from the user. \
+          RE-CONFIRMATION: If the user initially cancels the operation but then says 'yes' to proceed, you MUST ask for re-confirmation by showing the exact changes again and asking 'Please confirm the tracking options changes once more before proceeding: [show changes]. Do you want to proceed with updating these tracking options?' \
+          Only proceed if the user confirms again.`,
   {
     trackingCategoryId: z.string(),
     options: z.array(trackingOptionSchema).max(10)

@@ -7,12 +7,14 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 const CreateContactTool = CreateXeroTool(
   "create-contact",
   "Create a contact in Xero.\
-  When a contact is created, a deep link to the contact in Xero is returned. \
-  This deep link can be used to view the contact in Xero directly. \
-  This link should be displayed to the user. \
-  IMPORTANT: Before creating a contact, you MUST ask the user for confirmation with the exact details of the contact to be created. \
-  Show them the name, email, and phone number, then ask 'Do you want to proceed with creating this contact?' \
-  Only proceed after receiving explicit confirmation from the user.",
+          When a contact is created, a deep link to the contact in Xero is returned. \
+        This deep link can be used to view the contact in Xero directly. \
+        This link should be displayed to the user. \
+        IMPORTANT: Before creating a contact, you MUST ask the user for confirmation with the exact details of the contact to be created. \
+        Show them the name, email, and phone number, then ask 'Do you want to proceed with creating this contact?' \
+        Only proceed after receiving explicit confirmation from the user. \
+        RE-CONFIRMATION: If the user initially cancels the operation but then says 'yes' to proceed, you MUST ask for re-confirmation by showing the exact contact details again and asking 'Please confirm the contact details once more before proceeding: [show details]. Do you want to proceed with creating this contact?' \
+        Only proceed if the user confirms again.",
   {
     name: z.string(),
     email: z.string().email().optional(),

@@ -5,12 +5,14 @@ import {
 } from "../../handlers/revert-xero-payroll-timesheet.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 
-const RevertPayrollTimesheetTool = CreateXeroTool(
-  "revert-timesheet",
-  `Revert a payroll timesheet to draft in Xero by its ID.\
-  IMPORTANT: Before reverting a payroll timesheet, you MUST ask the user for confirmation with the exact details of the timesheet to be reverted. \
-  Show them the timesheet ID, then ask 'Do you want to proceed with reverting this payroll timesheet to draft?' \
-  Only proceed after receiving explicit confirmation from the user.`,
+        const RevertPayrollTimesheetTool = CreateXeroTool(
+          "revert-timesheet",
+          `Revert a payroll timesheet to draft in Xero by its ID.\
+          IMPORTANT: Before reverting a payroll timesheet, you MUST ask the user for confirmation with the exact details of the timesheet to be reverted. \
+          Show them the timesheet ID, then ask 'Do you want to proceed with reverting this payroll timesheet to draft?' \
+          Only proceed after receiving explicit confirmation from the user. \
+          RE-CONFIRMATION: If the user initially cancels the operation but then says 'yes' to proceed, you MUST ask for re-confirmation by showing the exact timesheet details again and asking 'Please confirm the timesheet revert once more before proceeding: [show details]. Do you want to proceed with reverting this payroll timesheet to draft?' \
+          Only proceed if the user confirms again.`,
   {
     timesheetID: z.string().describe("The ID of the timesheet to revert."),
   },
