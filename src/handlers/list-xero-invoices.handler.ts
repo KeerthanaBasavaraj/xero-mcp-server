@@ -7,8 +7,9 @@ import { getClientHeaders } from "../helpers/get-client-headers.js";
 async function getInvoices(
   invoiceNumbers: string[] | undefined,
   contactIds: string[] | undefined,
-  page: number,
+  page?: number,
   pageSize?: number,
+  searchTerm?: string,
 ): Promise<{ invoices: Invoice[], pagination?: any }> {
   await xeroClient.authenticate();
 
@@ -27,7 +28,7 @@ async function getInvoices(
     undefined, // unitdp
     false, // summaryOnly
     pageSize, // pageSize
-    undefined, // searchTerm
+    searchTerm, // searchTerm
     getClientHeaders(),
   );
   return {
@@ -40,13 +41,18 @@ async function getInvoices(
  * List all invoices from Xero
  */
 export async function listXeroInvoices(
-  page: number = 1,
+  page?: number,
   contactIds?: string[],
   invoiceNumbers?: string[],
   pageSize?: number,
+  searchTerm?: string,
 ): Promise<XeroClientResponse<{ invoices: Invoice[], pagination?: any }>> {
   try {
-    const result = await getInvoices(invoiceNumbers, contactIds, page, pageSize);
+    // If page is not provided, don't use pagination (set both page and pageSize to undefined)
+    const finalPage = page !== undefined ? page : undefined;
+    const finalPageSize = page !== undefined ? pageSize : undefined;
+    
+    const result = await getInvoices(invoiceNumbers, contactIds, finalPage, finalPageSize, searchTerm);
 
     return {
       result: result,
