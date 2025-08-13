@@ -30,7 +30,7 @@ const CreateInvoiceTool = CreateXeroTool(
          When an invoice is created, a deep link to the invoice in Xero is returned. \
         This deep link can be used to view the invoice in Xero directly. \
         This link should be displayed to the user. \
-        IMPORTANT: Before creating an invoice, you MUST ask the user for confirmation with the exact details of the invoice to be created. \
+        IMPORTANT: Before creating ** EVERY ** invoice, you MUST ask the user for confirmation with the exact details of the invoice to be created. \
         Show them the contact ID, line items (description, quantity, unit amount, account code, tax type), invoice type, reference, date, and due date, then ask 'Do you want to proceed with creating this invoice?' \
         'Do NOT suggest specific words or phrases for confirmation or cancellation.'\
         Only proceed after receiving explicit confirmation from the user. \
