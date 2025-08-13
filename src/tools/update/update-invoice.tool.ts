@@ -26,10 +26,14 @@ const lineItemSchema = z.object({
 
 const UpdateInvoiceTool = CreateXeroTool(
   "update-invoice",
-  `Update, delete, void, or authorize an invoice in Xero.\
-  - To delete: If the invoice is DRAFT or SUBMITTED, it will be deleted (status set to DELETED).\
-    If AUTHORISED, it will be voided (status set to VOIDED).\
-  - To authorize: If the invoice is not AUTHORISED, it can be authorized (status set to AUTHORISED).\
+  `- When the user requests to delete an invoice:\n
+  1. First, retrieve and display the current status of the invoice to the user.\n
+  2. Always ensure user confirmation before updating the invoice status, and use the update-invoice tool to perform the status change as per the rules:\n
+  - If the status is DRAFT or SUBMITTED: Prompt the user for confirmation to delete (status will be set to DELETED). Only proceed to update the status of invoice to delete after confirmation.
+  Update, delete, void, or authorize an invoice in Xero.\
+  - If the status is AUTHORISED: Inform the user that the invoice cannot be deleted. Prompt for confirmation to void (status will be set to VOIDED) and only proceed to update the status of invoice to voided after confirmation.\n
+  - If the status is already DELETED or VOIDED: Inform the user that no further action is needed.\n
+  - For any other status, inform the user that deletion is not permitted.\n
   All line items must be provided for updates. Any line items not provided will be removed, including existing line items.\
   Do not modify line items that have not been specified by the user.\
           When an invoice is updated, a deep link to the invoice in Xero is returned.\
