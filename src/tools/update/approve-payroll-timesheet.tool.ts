@@ -10,8 +10,9 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
           `Approve a payroll timesheet in Xero by its ID.\
           IMPORTANT: Before approving a payroll timesheet, you MUST ask the user for confirmation with the exact details of the timesheet to be approved. \
           Show them the timesheet ID, then ask 'Do you want to proceed with approving this payroll timesheet?' \
+          'Do NOT suggest specific words or phrases for confirmation or cancellation.'\
           Only proceed after receiving explicit confirmation from the user. \
-          RE-CONFIRMATION: If the user initially cancels the operation but then says 'yes' to proceed, you MUST ask for re-confirmation by showing the exact timesheet details again and asking 'Please confirm the timesheet approval once more before proceeding: [show details]. Do you want to proceed with approving this payroll timesheet?' \
+          RE-CONFIRMATION: If the operation was previously declined but the user later indicates they want to proceed, you MUST re-confirm by showing the same resource details again and asking: 'Please confirm the timesheet approval once more before proceeding: [show details]. Do you want to proceed with approving this payroll timesheet?' \
           Only proceed if the user confirms again.`,
   {
     timesheetID: z.string().describe("The ID of the timesheet to approve."),

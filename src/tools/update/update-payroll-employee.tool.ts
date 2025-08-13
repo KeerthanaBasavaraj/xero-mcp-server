@@ -7,8 +7,9 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
           "Update a payroll employee in Xero Payroll AU. Only employeeID is required. All other fields are optional and will only be updated if provided.\
           IMPORTANT: Before updating a payroll employee, you MUST ask the user for confirmation with the exact details of the changes to be made. \
           Show them the employee ID and all the fields that will be updated (first name, last name, email, date of birth, gender, start date, title, middle names, address details, phone number, job title), then ask 'Do you want to proceed with updating this payroll employee?' \
+          'Do NOT suggest specific words or phrases for confirmation or cancellation.'\
           Only proceed after receiving explicit confirmation from the user. \
-          RE-CONFIRMATION: If the user initially cancels the operation but then says 'yes' to proceed, you MUST ask for re-confirmation by showing the exact changes again and asking 'Please confirm the payroll employee changes once more before proceeding: [show changes]. Do you want to proceed with updating this payroll employee?' \
+          RE-CONFIRMATION: If the operation was previously declined but the user later indicates they want to proceed, you MUST re-confirm by showing the same resource details again and asking: 'Please confirm the payroll employee changes once more before proceeding: [show changes]. Do you want to proceed with updating this payroll employee?' \
           Only proceed if the user confirms again.",
   {
     employeeID: z.string().describe("The Xero employee ID to update (required)."),

@@ -32,8 +32,9 @@ const CreateInvoiceTool = CreateXeroTool(
         This link should be displayed to the user. \
         IMPORTANT: Before creating an invoice, you MUST ask the user for confirmation with the exact details of the invoice to be created. \
         Show them the contact ID, line items (description, quantity, unit amount, account code, tax type), invoice type, reference, date, and due date, then ask 'Do you want to proceed with creating this invoice?' \
+        'Do NOT suggest specific words or phrases for confirmation or cancellation.'\
         Only proceed after receiving explicit confirmation from the user. \
-        RE-CONFIRMATION: If the user initially cancels the operation but then says 'yes' to proceed, you MUST ask for re-confirmation by showing the exact invoice details again and asking 'Please confirm the invoice details once more before proceeding: [show details]. Do you want to proceed with creating this invoice?' \
+        RE-CONFIRMATION: If the operation was previously declined but the user later indicates they want to proceed, you MUST re-confirm by showing the same resource details again and asking: 'Please confirm the invoice details once more before proceeding: [show details]. Do you want to proceed with creating this invoice?' \
         Only proceed if the user confirms again.",
   {
     contactId: z.string().describe("The ID of the contact to create the invoice for. \

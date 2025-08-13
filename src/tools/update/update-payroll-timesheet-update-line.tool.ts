@@ -13,8 +13,9 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
           `Update an existing timesheet line in a payroll timesheet in Xero.\
           IMPORTANT: Before updating a timesheet line, you MUST ask the user for confirmation with the exact details of the changes to be made. \
           Show them the timesheet ID, timesheet line ID, and timesheet line details (earnings rate ID, number of units, date), then ask 'Do you want to proceed with updating this timesheet line?' \
+          'Do NOT suggest specific words or phrases for confirmation or cancellation.'\
           Only proceed after receiving explicit confirmation from the user. \
-          RE-CONFIRMATION: If the user initially cancels the operation but then says 'yes' to proceed, you MUST ask for re-confirmation by showing the exact changes again and asking 'Please confirm the timesheet line changes once more before proceeding: [show changes]. Do you want to proceed with updating this timesheet line?' \
+          RE-CONFIRMATION: If the operation was previously declined but the user later indicates they want to proceed, you MUST re-confirm by showing the same resource details again and asking: 'Please confirm the timesheet line changes once more before proceeding: [show changes]. Do you want to proceed with updating this timesheet line?' \
           Only proceed if the user confirms again.`,
   {
     timesheetID: z.string().describe("The ID of the timesheet to update."),

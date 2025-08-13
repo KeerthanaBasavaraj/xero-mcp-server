@@ -6,8 +6,9 @@ const CreateAttachmentTool = CreateXeroTool(
   "create-attachment",
   "Upload an attachment to a Xero entity (invoice, contact, credit note, etc.).\n\nRequired arguments:\n- entityType: The type of entity to upload the attachment to (e.g., invoices, contacts, creditnotes, etc.).\n- entityId: The ID of the entity to upload the attachment to.\n- fileUrl: The public URL of the file to upload.\n\nOptional arguments:\n- fileName: The file name to use for the attachment (if not provided, will use the name from the URL).\n\n        Only supported file types: PDF, JPG, JPEG, PNG, DOC, DOCX, XLS, XLSX, CSV, TIFF, GIF, XML.\n\nIMPORTANT: Before uploading an attachment, you MUST ask the user for confirmation with the exact details of the attachment to be uploaded. \
         Show them the entity type, entity ID, file URL, and file name, then ask 'Do you want to proceed with uploading this attachment?' \
+        'Do NOT suggest specific words or phrases for confirmation or cancellation.'\
         Only proceed after receiving explicit confirmation from the user. \
-        RE-CONFIRMATION: If the user initially cancels the operation but then says 'yes' to proceed, you MUST ask for re-confirmation by showing the exact attachment details again and asking 'Please confirm the attachment details once more before proceeding: [show details]. Do you want to proceed with uploading this attachment?' \
+        RE-CONFIRMATION: If the operation was previously declined but the user later indicates they want to proceed, you MUST re-confirm by showing the same resource details again and asking: 'Please confirm the attachment details once more before proceeding: [show details]. Do you want to proceed with uploading this attachment?' \
         Only proceed if the user confirms again.",
   {
     entityType: z

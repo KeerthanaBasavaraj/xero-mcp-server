@@ -12,8 +12,9 @@ const CreatePayrollTimesheetTool = CreateXeroTool(
         This allows you to specify details such as the employee ID, payroll calendar ID, start and end dates, and timesheet lines.\
         IMPORTANT: Before creating a payroll timesheet, you MUST ask the user for confirmation with the exact details of the timesheet to be created. \
         Show them the payroll calendar ID, employee ID, start date, end date, and timesheet lines (earnings rate ID, number of units, date), then ask 'Do you want to proceed with creating this payroll timesheet?' \
+        'Do NOT suggest specific words or phrases for confirmation or cancellation.'\
         Only proceed after receiving explicit confirmation from the user. \
-        RE-CONFIRMATION: If the user initially cancels the operation but then says 'yes' to proceed, you MUST ask for re-confirmation by showing the exact timesheet details again and asking 'Please confirm the payroll timesheet details once more before proceeding: [show details]. Do you want to proceed with creating this payroll timesheet?' \
+        RE-CONFIRMATION: If the operation was previously declined but the user later indicates they want to proceed, you MUST re-confirm by showing the same resource details again and asking: 'Please confirm the payroll timesheet details once more before proceeding: [show details]. Do you want to proceed with creating this payroll timesheet?' \
         Only proceed if the user confirms again.`,
   {
     payrollCalendarID: z.string().describe("The ID of the payroll calendar."),
