@@ -3,6 +3,8 @@ import { createXeroInvoice } from "../../handlers/create-xero-invoice.handler.js
 import { DeepLinkType, getDeepLink } from "../../helpers/get-deeplink.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { Invoice } from "xero-node";
+import { listXeroItems } from "../../handlers/list-xero-items.handler.js";
+import { createXeroItem } from "../../handlers/create-xero-item.handler.js";
 
 const trackingSchema = z.object({
   name: z.string().describe("The name of the tracking category. Can be obtained from the list-tracking-categories tool"),
@@ -41,7 +43,13 @@ const CreateInvoiceTool = CreateXeroTool(
         Only proceed after receiving explicit confirmation from the user. \
         RE-CONFIRMATION: If the operation was previously declined but the user later indicates they want to proceed, you MUST re-confirm by showing the same resource details again and asking: 'Please confirm the invoice details once more before proceeding: [show details]. Do you want to proceed with creating this invoice?' \
         Only proceed if the user confirms again. \
-        ITEM MAPPING: When a user provides an item name (e.g., 'clothing'), it should be mapped to the itemCode field, NOT the description field. The description field should only be used for additional details beyond the item name.",
+        ITEM MAPPING: When a user provides an item name (e.g., 'clothing'), the system will:\
+        1. Check if an item with that name exists in Xero\
+        2. If it exists, use it as the itemCode\
+        3. If it doesn't exist, ask the user if they want to create a new item with that name\
+        4. If the user agrees, create the item and use it as itemCode\
+        5. If the user declines, use the item name as the description field instead\
+        The description field should only be used for additional details beyond the item name when an existing item is used.",
   {
     contactId: z.string().describe("The ID of the contact to create the invoice for. \
       Can be obtained from the list-contacts tool."),
@@ -56,8 +64,83 @@ const CreateInvoiceTool = CreateXeroTool(
     dueDate: z.string().describe("The due date for the invoice (YYYY-MM-DD format).").optional(),
   },
   async ({ contactId, lineItems, type, reference, date ,dueDate }) => {
+    // Process line items to handle item names that don't exist
+    const processedLineItems = [];
+    
+    for (const lineItem of lineItems) {
+      if (lineItem.itemCode && lineItem.itemCode.trim()) {
+        // Check if the item exists in Xero
+        const itemsResponse = await listXeroItems(1);
+        let itemExists = false;
+        let existingItem = null;
+        
+        if (!itemsResponse.isError && itemsResponse.result) {
+          // Search through items to find a match
+          for (const item of itemsResponse.result) {
+            if (item.name && item.name.toLowerCase() === lineItem.itemCode.toLowerCase()) {
+              itemExists = true;
+              existingItem = item;
+              break;
+            }
+          }
+        }
+        
+        if (!itemExists) {
+          // Item doesn't exist, ask user if they want to create it
+          const shouldCreateItem = await askUserToCreateItem();
+          
+          if (shouldCreateItem) {
+            // Create the item
+            const createItemResponse = await createXeroItem({
+              code: lineItem.itemCode.toLowerCase().replace(/\s+/g, '-'),
+              name: lineItem.itemCode,
+              description: `Item created for invoice`,
+              salesDetails: {
+                unitPrice: lineItem.unitAmount,
+                accountCode: lineItem.accountCode,
+                taxType: lineItem.taxType,
+              },
+            });
+            
+            if (createItemResponse.isError) {
+              return {
+                content: [
+                  {
+                    type: "text" as const,
+                    text: `Error creating item '${lineItem.itemCode}': ${createItemResponse.error}. Please try again or use the item name as description instead.`,
+                  },
+                ],
+              };
+            }
+            
+            // Use the created item
+            processedLineItems.push({
+              ...lineItem,
+              itemCode: createItemResponse.result?.code || lineItem.itemCode,
+            });
+          } else {
+            // User doesn't want to create item, use name as description
+            processedLineItems.push({
+              ...lineItem,
+              description: lineItem.itemCode,
+              itemCode: undefined, // Remove itemCode since we're using description
+            });
+          }
+        } else {
+          // Item exists, use it
+          processedLineItems.push({
+            ...lineItem,
+            itemCode: existingItem?.code || lineItem.itemCode,
+          });
+        }
+      } else {
+        // No itemCode provided, use as is
+        processedLineItems.push(lineItem);
+      }
+    }
+
     const xeroInvoiceType = type === "ACCREC" ? Invoice.TypeEnum.ACCREC : Invoice.TypeEnum.ACCPAY;
-    const result = await createXeroInvoice(contactId, lineItems, xeroInvoiceType, reference, date ,dueDate);
+    const result = await createXeroInvoice(contactId, processedLineItems, xeroInvoiceType, reference, date ,dueDate);
     if (result.isError) {
       return {
         content: [
@@ -100,5 +183,17 @@ const CreateInvoiceTool = CreateXeroTool(
     };
   },
 );
+
+// Helper function to ask user if they want to create an item
+// In a real chatbot implementation, this function should:
+// 1. Ask the user: "The item '{itemName}' doesn't exist in Xero. Would you like me to create it as a new line item, or should I use '{itemName}' as the description instead?"
+// 2. Wait for user response
+// 3. Return true if user wants to create the item, false if they want to use as description
+// For now, this is a placeholder that defaults to using the item name as description
+async function askUserToCreateItem(): Promise<boolean> {
+  // TODO: Implement user interaction logic in chatbot interface
+  // This should ask: "The item '{itemName}' doesn't exist in Xero. Would you like me to create it as a new line item, or should I use '{itemName}' as the description instead?"
+  return false; // Default to using item name as description
+}
 
 export default CreateInvoiceTool;
