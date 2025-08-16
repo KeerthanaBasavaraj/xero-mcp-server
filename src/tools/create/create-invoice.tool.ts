@@ -12,7 +12,10 @@ const trackingSchema = z.object({
 });
 
 const lineItemSchema = z.object({
-  description: z.string().describe("The description of the line item"),
+  description: z.string().describe("The description of the line item\
+    If the user provides only an item name, do not use this field.\
+    Use it only when additional details beyond the item name are provided (e.g., 'custom-made', 'gift-wrapped').\
+    "),
   quantity: z.number().describe("The quantity of the line item"),
   unitAmount: z.number().describe("The price per unit of the line item"),
   accountCode: z.string().describe("The account code of the line item - can be obtained from the list-accounts tool"),
@@ -27,6 +30,7 @@ const lineItemSchema = z.object({
 const CreateInvoiceTool = CreateXeroTool(
   "create-invoice",
   "Create an invoice in Xero.\
+         ALWAYS ASK FOR CONFIRMATION BEFORE CREATING AN INVOICE. \
          When an invoice is created, a deep link to the invoice in Xero is returned. \
         This deep link can be used to view the invoice in Xero directly. \
         This link should be displayed to the user. \
