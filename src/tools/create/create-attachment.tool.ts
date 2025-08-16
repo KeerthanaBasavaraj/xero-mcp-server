@@ -1,15 +1,11 @@
 import { z } from "zod";
-import { createXeroAttachment } from "../../handlers/create-xero-attachment.handler.js";
+import { listXeroAttachments } from "../../handlers/list-xero-attachments.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
+import { generateUniqueFilename } from "../../helpers/generate-unique-filename.js";
 
 const CreateAttachmentTool = CreateXeroTool(
-  "create-attachment",
-  "Upload an attachment to a Xero entity (invoice, contact, credit note, etc.).\n\nRequired arguments:\n- entityType: The type of entity to upload the attachment to (e.g., invoices, contacts, creditnotes, etc.).\n- entityId: The ID of the entity to upload the attachment to.\n- fileUrl: The public URL of the file to upload.\n\nOptional arguments:\n- fileName: The file name to use for the attachment (if not provided, will use the name from the URL).\n\n        Only supported file types: PDF, JPG, JPEG, PNG, DOC, DOCX, XLS, XLSX, CSV, TIFF, GIF, XML.\n\nIMPORTANT: Before uploading an attachment, you MUST ask the user for confirmation with the exact details of the attachment to be uploaded. \
-        Show them the entity type, entity ID, file URL, and file name, then ask 'Do you want to proceed with uploading this attachment?' \
-        'Do NOT suggest specific words or phrases for confirmation or cancellation.'\
-        Only proceed after receiving explicit confirmation from the user. \
-        RE-CONFIRMATION: If the operation was previously declined but the user later indicates they want to proceed, you MUST re-confirm by showing the same resource details again and asking: 'Please confirm the attachment details once more before proceeding: [show details]. Do you want to proceed with uploading this attachment?' \
-        Only proceed if the user confirms again.",
+  "check-attachment-duplicates",
+  "Check for duplicate attachment filenames and generate unique names when needed. This tool should be used before uploading attachments to ensure no filename conflicts occur.\n\nRequired arguments:\n- entityType: The type of entity to upload the attachment to (e.g., invoices, contacts, creditnotes, etc.).\n- entityId: The ID of the entity to upload the attachment to.\n- fileUrl: The public URL of the file to upload.\n\nOptional arguments:\n- fileName: The file name to use for the attachment (if not provided, will use the name from the URL).\n\n        Only supported file types: PDF, JPG, JPEG, PNG, DOC, DOCX, XLS, XLSX, CSV, TIFF, GIF, XML.\n\nThis tool will:\n1. Check existing attachments for the entity\n2. Detect if the filename already exists\n3. Generate a unique filename if duplicates are found\n4. Ask for user confirmation\n\nAfter confirmation, use the 'upload-attachment' tool with the final filename to complete the upload.\n\nDUPLICATE HANDLING: This tool automatically checks for duplicate filenames and generates unique names when needed. If a duplicate is found, it will show the new filename and ask for confirmation before proceeding.",
   {
     entityType: z
       .enum([
@@ -34,38 +30,79 @@ const CreateAttachmentTool = CreateXeroTool(
       ),
   },
   async ({ entityType, entityId, fileUrl, fileName }) => {
-    const result = await createXeroAttachment(
-      entityType,
-      entityId,
-      fileUrl,
-      fileName,
-    );
-    if (result.isError) {
+    // First, check for existing attachments to detect duplicates
+    const existingAttachmentsResult = await listXeroAttachments(entityType, entityId);
+    
+    if (existingAttachmentsResult.isError) {
       return {
         content: [
           {
             type: "text" as const,
-            text: `Error uploading attachment: ${result.error}`,
+            text: `Error checking existing attachments: ${existingAttachmentsResult.error}. Please try again.`,
           },
         ],
       };
     }
-    const attachment = result.result;
+    
+    const existingAttachments = existingAttachmentsResult.result || [];
+    const existingFileNames = existingAttachments.map(att => att.fileName || "").filter(Boolean);
+    
+    // Generate the original filename
+    const originalFileName = fileName || fileUrl.split("/").pop()?.split("?")[0] || "attachment";
+    
+    // Check if filename needs to be made unique
+    const finalFileName = generateUniqueFilename(originalFileName, existingFileNames);
+    const isDuplicate = finalFileName !== originalFileName;
+    
+    // Prepare confirmation message
+    const baseMessage = [
+      "📎 Attachment Duplicate Check Results:",
+      "",
+      "Upload Details:",
+      `Entity Type: ${entityType}`,
+      `Entity ID: ${entityId}`,
+      `File URL: ${fileUrl}`,
+      `Original File Name: ${originalFileName}`,
+      `Final File Name: ${finalFileName}`,
+    ];
+    
+    let confirmationMessage: string[];
+    
+    if (isDuplicate) {
+      confirmationMessage = [
+        ...baseMessage,
+        "",
+        `DUPLICATE FILENAME DETECTED!`,
+        `The filename "${originalFileName}" already exists for this ${entityType}.`,
+        `I've generated a unique filename: "${finalFileName}"`,
+        "",
+        "Do you want to proceed with uploading this attachment with the new filename?",
+        "",
+        "If yes, use the 'upload-attachment' tool with these parameters:",
+        `- entityType: ${entityType}`,
+        `- entityId: ${entityId}`,
+        `- fileUrl: ${fileUrl}`,
+        `- fileName: ${finalFileName}`
+      ];
+    } else {
+      confirmationMessage = [
+        ...baseMessage,
+        "",
+        "No duplicate filename detected. You can proceed with the upload.",
+        "",
+        "Use the 'upload-attachment' tool with these parameters:",
+        `- entityType: ${entityType}`,
+        `- entityId: ${entityId}`,
+        `- fileUrl: ${fileUrl}`,
+        `- fileName: ${finalFileName}`
+      ];
+    }
+    
     return {
       content: [
         {
           type: "text" as const,
-          text: [
-            "Attachment uploaded successfully:",
-            `Entity: ${entityType}`,
-            `Entity ID: ${entityId}`,
-            `Attachment ID: ${attachment?.attachmentID}`,
-            `File Name: ${attachment?.fileName}`,
-            `Mime Type: ${attachment?.mimeType}`,
-            `Size: ${attachment?.contentLength} bytes`,
-          ]
-            .filter(Boolean)
-            .join("\n"),
+          text: confirmationMessage.join("\n"),
         },
       ],
     };
