@@ -12,16 +12,17 @@ const trackingSchema = z.object({
 });
 
 const lineItemSchema = z.object({
-  description: z.string().describe("The description of the line item\
-    If the user provides only an item name, do not use this field.\
-    Use it only when additional details beyond the item name are provided (e.g., 'custom-made', 'gift-wrapped').\
-    "),
+  description: z.string().describe("The description of the line item. \
+    Use this field ONLY when additional details beyond the item name are provided (e.g., 'custom-made', 'gift-wrapped'). \
+    If the user provides only an item name, leave this field empty or use a minimal description."),
   quantity: z.number().describe("The quantity of the line item"),
   unitAmount: z.number().describe("The price per unit of the line item"),
   accountCode: z.string().describe("The account code of the line item - can be obtained from the list-accounts tool"),
   taxType: z.string().describe("The tax type of the line item - can be obtained from the list-tax-rates tool"),
-  itemCode: z.string().describe("The item code of the line item - can be obtained from the list-items tool \
-    If the item is not listed, add without an item code and ask the user if they would like to add an item code.\nIf the user provides an item name map it here. Do not put it in `description` unless there is additional descriptive information.").optional(),
+  itemCode: z.string().describe("The item code or name of the line item. \
+    This should be populated with the item name when the user provides one (e.g., 'clothing'). \
+    Can be obtained from the list-items tool for existing items. \
+    If the item is not listed, use the item name provided by the user."),
   tracking: z.array(trackingSchema).describe("Up to 2 tracking categories and options can be added to the line item. \
     Can be obtained from the list-tracking-categories tool. \
     Only use if prompted by the user.").optional(),
@@ -35,11 +36,12 @@ const CreateInvoiceTool = CreateXeroTool(
         This deep link can be used to view the invoice in Xero directly. \
         This link should be displayed to the user. \
         IMPORTANT: Before creating ** EVERY ** invoice, you MUST ask the user for confirmation with the exact details of the invoice to be created. \
-        Show them the contact ID, line items (description, quantity, unit amount, account code, tax type), invoice type, reference, date, and due date, then ask 'Do you want to proceed with creating this invoice?' \
+        Show them the contact ID, line items (description, quantity, unit amount, account code, tax type, item code), invoice type, reference, date, and due date, then ask 'Do you want to proceed with creating this invoice?' \
         'Do NOT suggest specific words or phrases for confirmation or cancellation.'\
         Only proceed after receiving explicit confirmation from the user. \
         RE-CONFIRMATION: If the operation was previously declined but the user later indicates they want to proceed, you MUST re-confirm by showing the same resource details again and asking: 'Please confirm the invoice details once more before proceeding: [show details]. Do you want to proceed with creating this invoice?' \
-        Only proceed if the user confirms again.",
+        Only proceed if the user confirms again. \
+        ITEM MAPPING: When a user provides an item name (e.g., 'clothing'), it should be mapped to the itemCode field, NOT the description field. The description field should only be used for additional details beyond the item name.",
   {
     contactId: z.string().describe("The ID of the contact to create the invoice for. \
       Can be obtained from the list-contacts tool."),
