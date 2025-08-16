@@ -6,8 +6,16 @@ import { formatAgedReportFilter } from "../../helpers/format-aged-report-filter.
 const ListAgedReceivables = CreateXeroTool(
   "list-aged-receivables",
   `Lists all aged receivables in Xero.
-  This shows overdue invoices across all contacts up to a report date. OR for a certain contact up to a report date.
-    **FIRST ASK USER WHAT HE/SHE WANT FOR ALL CONTACT OR SPECIFIC CONTACT **`,
+  This shows overdue invoices across all contacts up to a report date OR for a certain contact up to a report date.
+  
+  **CRITICAL: Before proceeding, you MUST ask the user to explicitly choose one of these options:**
+  1. "all contacts" - to show aged receivables for all contacts
+  2. "specific contact" - to show aged receivables for a specific contact (contactId required)
+  
+  **DO NOT PROCEED** if the user provides ambiguous responses like "yes", "no", "go ahead", or doesn't clearly specify their choice.
+  **DO NOT PROCEED** if the user keeps asking without making a clear selection from the options provided.
+  
+  **You must wait for a clear, explicit choice before executing this tool.**`,
   {
     contactId: z
       .string()
