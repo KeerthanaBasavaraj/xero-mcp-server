@@ -18,7 +18,7 @@ const lineItemSchema = z.object({
   accountCode: z.string().describe("The account code of the line item - can be obtained from the list-accounts tool"),
   taxType: z.string().describe("The tax type of the line item - can be obtained from the list-tax-rates tool"),
   itemCode: z.string().describe("The item code of the line item - can be obtained from the list-items tool \
-    If the item is not listed, add without an item code and ask the user if they would like to add an item code.").optional(),
+    If the item is not listed, add without an item code and ask the user if they would like to add an item code.\nIf the user provides an item name map it here. Do not put it in `description` unless there is additional descriptive information.").optional(),
   tracking: z.array(trackingSchema).describe("Up to 2 tracking categories and options can be added to the line item. \
     Can be obtained from the list-tracking-categories tool. \
     Only use if prompted by the user.").optional(),
