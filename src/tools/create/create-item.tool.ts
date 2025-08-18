@@ -14,24 +14,27 @@ const salesDetailsSchema = z.object({
   accountCode: z.string().optional(),
 });
 
-        const CreateItemTool = CreateXeroTool(
-          "create-item",
-          "Create an item in Xero.\
-          IMPORTANT: Before creating an item, you MUST ask the user for confirmation with the exact details of the item to be created. \
-          Show them the code, name, description, purchase description, purchase details, sales details, is tracked as inventory, and inventory asset account code, then ask 'Do you want to proceed with creating this item?' \
-          'Do NOT suggest specific words or phrases for confirmation or cancellation.'\
-          Only proceed after receiving explicit confirmation from the user. \
-          RE-CONFIRMATION: If the operation was previously declined but the user later indicates they want to proceed, you MUST re-confirm by showing the same resource details again and asking: 'Please confirm the item details once more before proceeding: [show details]. Do you want to proceed with creating this item?' \
-          Only proceed if the user confirms again.",
+const CreateItemTool = CreateXeroTool(
+  "create-item",
+  "Create an item in Xero.\
+  IMPORTANT: Before creating an item, you MUST ask the user for confirmation with the exact details of the item to be created. \
+  Show them the code, name, description, purchase description, purchase details, sales details, is tracked as inventory, and inventory asset account code, then ask 'Do you want to proceed with creating this item?' \
+  'Do NOT suggest specific words or phrases for confirmation or cancellation.'\
+  Only proceed after receiving explicit confirmation from the user. \
+  RE-CONFIRMATION: If the operation was previously declined but the user later indicates they want to proceed, you MUST re-confirm by showing the same resource details again and asking: 'Please confirm the item details once more before proceeding: [show details]. Do you want to proceed with creating this item?' \
+  Only proceed if the user confirms again.",
   {
-    code: z.string(),
-    name: z.string(),
-    description: z.string().optional(),
-    purchaseDescription: z.string().optional(),
+    code: z.string().describe("The unique code for the item"),
+    name: z.string().describe("The name of the item"),
+    description: z.string().describe("The description of the item").optional(),
+    purchaseDescription: z.string().describe("The purchase description of the item").optional(),
     purchaseDetails: purchaseDetailsSchema.optional(),
     salesDetails: salesDetailsSchema.optional(),
-    isTrackedAsInventory: z.boolean().optional(),
-    inventoryAssetAccountCode: z.string().optional(),
+    isTrackedAsInventory: z.boolean().describe("Whether the item is tracked as inventory").optional(),
+    inventoryAssetAccountCode: z.string().describe("The inventory asset account code").optional(),
+    confirmation: z.boolean().describe("MUST be set to true to confirm that the user has reviewed all item details and wants to proceed with creating the item. \
+      This parameter enforces that confirmation is required before any item is created. \
+      Set to false if user has not confirmed or if you need to show details for confirmation first."),
   },
   async ({
     code,
@@ -42,7 +45,20 @@ const salesDetailsSchema = z.object({
     salesDetails,
     isTrackedAsInventory,
     inventoryAssetAccountCode,
+    confirmation,
   }) => {
+    // Check if user has confirmed
+    if (!confirmation) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "Item creation requires explicit confirmation. Please review the item details and confirm before proceeding.",
+          },
+        ],
+      };
+    }
+
     const result = await createXeroItem({
       code,
       name,
