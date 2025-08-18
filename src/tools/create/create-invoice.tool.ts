@@ -36,7 +36,10 @@ const CreateInvoiceTool = CreateXeroTool(
          2. For line items approach:\
             - Ask if they want to use existing items or create new ones\
             - If existing: use list-items tool to show available items and then ask for the item code and use that to create the invoice\
-            - If new: Use create-item tool to create the item first where item code is required and then use that item code to create the invoice\
+            - If new: Use create-item tool to create the item first where item code is required\
+            - After creating new item: Ask user 'Do you want to use this item and create invoice?'\
+            - If user wants changes: Allow them to modify the item details and update accordingly\
+            - If user proceeds: Use the created/updated item code to create the invoice\
          \
          3. For description approach:\
             - Collect description, quantity, unit amount etc\
