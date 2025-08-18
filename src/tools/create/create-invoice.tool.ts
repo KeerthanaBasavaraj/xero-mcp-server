@@ -30,8 +30,9 @@ const CreateInvoiceTool = CreateXeroTool(
          \
          WORKFLOW:\
          1. Ask user how they want to create the invoice:\
-            - Option A: Using line items (existing items or create new ones)\
-            - Option B: Using description only (provide description, quantity, price, etc.)\
+            - Using line items (existing items or create new ones)\
+            OR\
+            -Using description only (provide description, quantity, price, etc.)\
          \
          2. For line items approach:\
             - Ask if they want to use existing items or create new ones\
@@ -57,7 +58,7 @@ const CreateInvoiceTool = CreateXeroTool(
         Only proceed if the user confirms again.",
   {
     contactId: z.string().describe("The ID of the contact to create the invoice for. \
-      Can be obtained from the list-contacts tool. Fetch details but do not show them to the user, just say 'I found the contact'"),
+      Can be obtained from the list-contacts tool. Fetch details but do not show them complete details to the user, just say let user know you found the contact"),
     lineItems: z.array(lineItemSchema).describe("Array of line items for the invoice. \
       Each line item should include description, quantity, unit amount, account code, and tax type. \
       If using existing items, include the itemCode. If creating with description only, omit itemCode."),
