@@ -37,8 +37,8 @@ export async function createXeroAttachment(
     console.log(
       `File downloaded successfully, size: ${response.data.length} bytes`,
     );
-    const ext = path.extname(fileName || fileUrl.split("?")[0]);
-    if (!SUPPORTED_EXTENSIONS.includes(ext.toLowerCase())) {
+    const ext = path.extname(fileName || fileUrl.split("?")[0]).toLowerCase();
+    if (!SUPPORTED_EXTENSIONS.includes(ext)) {
       throw new Error(
         `File type ${ext} is not supported by Xero. Supported: ${SUPPORTED_EXTENSIONS.join(", ")}`,
       );
@@ -52,6 +52,8 @@ export async function createXeroAttachment(
       mimeType,
       entityType,
       entityId,
+      fileSize: response.data.length,
+      originalUrl: fileUrl,
     });
     let sdkResponse;
     // Use switch statement like the list handler for better error handling
@@ -143,14 +145,28 @@ export async function createXeroAttachment(
     console.log(`SDK response received:`, {
       status: sdkResponse.response?.status,
       statusText: sdkResponse.response?.statusText,
-      body: sdkResponse.body,
+      hasBody: !!sdkResponse.body,
+      hasAttachments: !!sdkResponse.body?.attachments,
+      attachmentCount: sdkResponse.body?.attachments?.length || 0,
     });
+    
     const attachment = sdkResponse.body.attachments?.[0] || null;
     if (!attachment) {
-      console.error("No attachment returned in response:", sdkResponse.body);
-      throw new Error("Upload completed but no attachment was returned");
+      console.error("No attachment returned in response:", {
+        body: sdkResponse.body,
+        status: sdkResponse.response?.status,
+        statusText: sdkResponse.response?.statusText,
+      });
+      throw new Error("Upload completed but no attachment was returned from Xero API");
     }
-    console.log(`Attachment uploaded successfully:`, attachment);
+    
+    console.log(`Attachment uploaded successfully:`, {
+      attachmentID: attachment.attachmentID,
+      fileName: attachment.fileName,
+      mimeType: attachment.mimeType,
+      contentLength: attachment.contentLength,
+    });
+    
     return { result: attachment, isError: false, error: null };
   } catch (error) {
     console.error("Attachment upload error:", error);

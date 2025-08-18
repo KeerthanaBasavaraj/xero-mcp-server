@@ -38,7 +38,7 @@ const CreateAttachmentTool = CreateXeroTool(
         content: [
           {
             type: "text" as const,
-            text: `Error checking existing attachments: ${existingAttachmentsResult.error}. Please try again.`,
+            text: `Error checking existing attachments: ${existingAttachmentsResult.error}. Please verify the entity ID and try again.`,
           },
         ],
       };
@@ -56,14 +56,16 @@ const CreateAttachmentTool = CreateXeroTool(
     
     // Prepare confirmation message
     const baseMessage = [
-      "📎 Attachment Duplicate Check Results:",
+      "**ATTACHMENT UPLOAD PREPARATION**",
       "",
-      "Upload Details:",
-      `Entity Type: ${entityType}`,
-      `Entity ID: ${entityId}`,
-      `File URL: ${fileUrl}`,
-      `Original File Name: ${originalFileName}`,
-      `Final File Name: ${finalFileName}`,
+      "**Upload Details:**",
+      `• Entity Type: ${entityType}`,
+      `• Entity ID: ${entityId}`,
+      `• File URL: ${fileUrl}`,
+      `• Original File Name: ${originalFileName}`,
+      `• Final File Name: ${finalFileName}`,
+      "",
+      `**Existing Attachments:** ${existingAttachments.length} found`,
     ];
     
     let confirmationMessage: string[];
@@ -72,29 +74,38 @@ const CreateAttachmentTool = CreateXeroTool(
       confirmationMessage = [
         ...baseMessage,
         "",
-        `DUPLICATE FILENAME DETECTED!`,
+        "**DUPLICATE FILENAME DETECTED!**",
         `The filename "${originalFileName}" already exists for this ${entityType}.`,
         `I've generated a unique filename: "${finalFileName}"`,
         "",
+        "**CONFIRMATION REQUIRED:**",
         "Do you want to proceed with uploading this attachment with the new filename?",
         "",
-        "If yes, use the 'upload-attachment' tool with these parameters:",
-        `- entityType: ${entityType}`,
-        `- entityId: ${entityId}`,
-        `- fileUrl: ${fileUrl}`,
-        `- fileName: ${finalFileName}`
+        "**Next Step:** If you confirm, use the 'upload-attachment' tool with these exact parameters:",
+        `• entityType: ${entityType}`,
+        `• entityId: ${entityId}`,
+        `• fileUrl: ${fileUrl}`,
+        `• fileName: ${finalFileName}`,
+        "",
+        "Please confirm if you want to proceed with the upload."
       ];
     } else {
       confirmationMessage = [
         ...baseMessage,
         "",
-        "No duplicate filename detected. You can proceed with the upload.",
+        "**No duplicate filename detected.**",
+        "You can proceed with the upload.",
         "",
-        "Use the 'upload-attachment' tool with these parameters:",
-        `- entityType: ${entityType}`,
-        `- entityId: ${entityId}`,
-        `- fileUrl: ${fileUrl}`,
-        `- fileName: ${finalFileName}`
+        "**CONFIRMATION REQUIRED:**",
+        "Do you want to proceed with uploading this attachment?",
+        "",
+        "**Next Step:** If you confirm, use the 'upload-attachment' tool with these exact parameters:",
+        `• entityType: ${entityType}`,
+        `• entityId: ${entityId}`,
+        `• fileUrl: ${fileUrl}`,
+        `• fileName: ${finalFileName}`,
+        "",
+        "Please confirm if you want to proceed with the upload."
       ];
     }
     
@@ -105,6 +116,7 @@ const CreateAttachmentTool = CreateXeroTool(
           text: confirmationMessage.join("\n"),
         },
       ],
+      isDashboard: true,
     };
   },
 );
