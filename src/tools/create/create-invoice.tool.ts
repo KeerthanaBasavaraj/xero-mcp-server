@@ -28,8 +28,7 @@ const CreateInvoiceTool = CreateXeroTool(
   "create-invoice",
   "Create an invoice in Xero. This tool supports creating invoices with line items that can either use existing items or be created with descriptions only.\
          \
-         you have two ways to create an invoice:\
-         1. Ask user how they want to create the invoice:\
+         1. to create the invoice:\
             - Option A: Using line items (existing items or create new ones)\
             - Option B: Using description only (provide description, quantity, price, etc.)\
          \
@@ -39,11 +38,9 @@ const CreateInvoiceTool = CreateXeroTool(
             - If new: Use create-item tool to create the item first where item code is required and then use that item code to create the invoice\
          \
          3. For description approach:\
-            - Collect description, quantity, unit amount, account code, and tax type directly\
+            - Collect description, quantity, unit amount etc\
          \
-         4. Collect invoice details (contact ID, type, reference, dates)\
-         \
-         5. Show complete invoice details and ask for confirmation\
+         4. Show complete invoice details and ask for confirmation before creating the invoice\
          \
          When an invoice is created, a deep link to the invoice in Xero is returned. \
         This deep link can be used to view the invoice in Xero directly. \
