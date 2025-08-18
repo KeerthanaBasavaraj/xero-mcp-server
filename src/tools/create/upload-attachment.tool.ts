@@ -26,6 +26,23 @@ const UploadAttachmentTool = CreateXeroTool(
       .describe("The final filename to use for the attachment."),
   },
   async ({ entityType, entityId, fileUrl, fileName }) => {
+    // Validate file extension before attempting upload
+    const fileExtension = fileName.toLowerCase().split('.').pop();
+    const supportedExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'tiff', 'gif', 'xml'];
+    
+    if (!fileExtension || !supportedExtensions.includes(fileExtension)) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `**UPLOAD FAILED - INVALID FILE TYPE**\n\nFile extension "${fileExtension}" is not supported.\nSupported formats: ${supportedExtensions.join(', ').toUpperCase()}\n\nPlease ensure your file has a supported extension and try again.`,
+          },
+        ],
+      };
+    }
+
+    console.log(`Starting attachment upload for ${entityType} ${entityId} with file: ${fileName}`);
+    
     const result = await createXeroAttachment(
       entityType,
       entityId,
@@ -38,32 +55,47 @@ const UploadAttachmentTool = CreateXeroTool(
         content: [
           {
             type: "text" as const,
-            text: `Error uploading attachment: ${result.error}`,
+            text: `**UPLOAD FAILED**\n\nError: ${result.error}\n\nPlease check:\n• The file URL is accessible\n• The entity ID is correct\n• The file format is supported\n• Your Xero connection is working\n\nTry again or contact support if the issue persists.`,
           },
         ],
       };
     }
     
     const attachment = result.result;
+    
+    if (!attachment) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `**UPLOAD FAILED**\n\nNo attachment was returned from Xero. This could indicate:\n• The upload was not completed successfully\n• There was an issue with the Xero API response\n• The file format was rejected by Xero\n\nPlease try again or check the file format.`,
+          },
+        ],
+      };
+    }
+    
     return {
       content: [
         {
           type: "text" as const,
           text: [
-            "Attachment uploaded successfully!",
+            "**ATTACHMENT UPLOADED SUCCESSFULLY!**",
             "",
-            "Upload Details:",
-            `Entity: ${entityType}`,
-            `Entity ID: ${entityId}`,
-            `Attachment ID: ${attachment?.attachmentID}`,
-            `File Name: ${attachment?.fileName}`,
-            `Mime Type: ${attachment?.mimeType}`,
-            `Size: ${attachment?.contentLength} bytes`,
+            "**Upload Details:**",
+            `• Entity: ${entityType}`,
+            `• Entity ID: ${entityId}`,
+            `• Attachment ID: ${attachment.attachmentID || 'N/A'}`,
+            `• File Name: ${attachment.fileName || fileName}`,
+            `• Mime Type: ${attachment.mimeType || 'N/A'}`,
+            `• Size: ${attachment.contentLength ? `${attachment.contentLength} bytes` : 'N/A'}`,
+            "",
+            "The attachment has been successfully uploaded to Xero and is now available in your account.",
           ]
             .filter(Boolean)
             .join("\n"),
         },
       ],
+      isDashboard: true,
     };
   },
 );
