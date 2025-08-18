@@ -41,6 +41,7 @@ const CreateInvoiceTool = CreateXeroTool(
             - After creating new item: Ask user 'Do you want to use this item and create invoice?'\
             - If user wants changes: Allow them to modify the item details and update accordingly\
             - If user proceeds: Use the created/updated item code to create the invoice\
+            - IMPORTANT: When asking for confirmation, ask directly without saying 'Let me ask for your confirmation' or similar phrases. Just ask the question directly.\
          \
          3. For description approach:\
             - Collect description, quantity, unit amount etc\
