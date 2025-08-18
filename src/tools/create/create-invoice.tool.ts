@@ -28,7 +28,8 @@ const CreateInvoiceTool = CreateXeroTool(
   "create-invoice",
   "Create an invoice in Xero. This tool supports creating invoices with line items that can either use existing items or be created with descriptions only.\
          \
-         1. to create the invoice:\
+         WORKFLOW:\
+         1. Ask user how they want to create the invoice:\
             - Option A: Using line items (existing items or create new ones)\
             - Option B: Using description only (provide description, quantity, price, etc.)\
          \
@@ -53,7 +54,7 @@ const CreateInvoiceTool = CreateXeroTool(
         Only proceed if the user confirms again.",
   {
     contactId: z.string().describe("The ID of the contact to create the invoice for. \
-      Can be obtained from the list-contacts tool.fetch details but do not show them to the user , just say i found the contact"),
+      Can be obtained from the list-contacts tool. Fetch details but do not show them to the user, just say 'I found the contact'"),
     lineItems: z.array(lineItemSchema).describe("Array of line items for the invoice. \
       Each line item should include description, quantity, unit amount, account code, and tax type. \
       If using existing items, include the itemCode. If creating with description only, omit itemCode."),
@@ -64,8 +65,23 @@ const CreateInvoiceTool = CreateXeroTool(
     reference: z.string().describe("A reference number for the invoice.").optional(),
     date: z.string().describe("The date the invoice was created (YYYY-MM-DD format).").optional(),
     dueDate: z.string().describe("The due date for the invoice (YYYY-MM-DD format).").optional(),
+    confirmation: z.boolean().describe("MUST be set to true to confirm that the user has reviewed all invoice details and wants to proceed with creating the invoice. \
+      This parameter enforces that confirmation is required before any invoice is created. \
+      Set to false if user has not confirmed or if you need to show details for confirmation first."),
   },
-  async ({ contactId, lineItems, type, reference, date, dueDate }) => {
+  async ({ contactId, lineItems, type, reference, date, dueDate, confirmation }) => {
+    // Check if user has confirmed
+    if (!confirmation) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "Invoice creation requires explicit confirmation. Please review the invoice details and confirm before proceeding.",
+          },
+        ],
+      };
+    }
+
     const xeroInvoiceType = type === "ACCREC" ? Invoice.TypeEnum.ACCREC : Invoice.TypeEnum.ACCPAY;
     const result = await createXeroInvoice(contactId, lineItems, xeroInvoiceType, reference, date, dueDate);
     if (result.isError) {
