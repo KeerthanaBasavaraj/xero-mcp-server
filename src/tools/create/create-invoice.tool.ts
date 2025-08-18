@@ -26,7 +26,28 @@ const lineItemSchema = z.object({
 
 const CreateInvoiceTool = CreateXeroTool(
   "create-invoice",
-  "Create an invoice in Xero.\
+  "Create an invoice in Xero. This tool supports creating invoices with line items that can either use existing items or be created with descriptions only.\
+         \
+         WORKFLOW:\
+         1. Ask user how they want to create the invoice:\
+            - Using line items (existing items or create new ones)\
+            OR\
+            -Using description only (provide description, quantity, price, etc.)\
+         \
+         2. For line items approach:\
+            - Ask if they want to use existing items or create new ones ( if directly specify item name , check if it exists in the list-items tool , if don't then ask if they want to create a new item and use that created item)\
+            - If existing: use list-items tool to show available items and then ask for the item code and use that to create the invoice\
+            - If new: Use create-item tool to create the item first where item code is required\
+            - After creating new item: Ask user 'Do you want to use this item and create invoice?'\
+            - If user wants changes: Allow them to modify the item details and update accordingly\
+            - If user proceeds: Use the created/updated item code to create the invoice\
+            - IMPORTANT: When asking for confirmation, ask directly without saying 'Let me ask for your confirmation' or similar phrases. Just ask the question directly.\
+         \
+         3. For description approach:\
+            - Collect description, quantity, unit amount etc\
+         \
+         4. Show complete invoice details and ask for confirmation before creating the invoice\
+         \
          When an invoice is created, a deep link to the invoice in Xero is returned. \
         This deep link can be used to view the invoice in Xero directly. \
         This link should be displayed to the user. \
@@ -38,9 +59,10 @@ const CreateInvoiceTool = CreateXeroTool(
         Only proceed if the user confirms again.",
   {
     contactId: z.string().describe("The ID of the contact to create the invoice for. \
-      Can be obtained from the list-contacts tool."),
-      
-    lineItems: z.array(lineItemSchema),
+      Can be obtained from the list-contacts tool. Fetch details but do not show them complete details to the user, just say let user know you found the contact"),
+    lineItems: z.array(lineItemSchema).describe("Array of line items for the invoice. \
+      Each line item should include description, quantity, unit amount, account code, and tax type. \
+      If using existing items, include the itemCode. If creating with description only, omit itemCode."),
     type: z.enum(["ACCREC", "ACCPAY"]).describe("The type of invoice to create. \
       ACCREC is for sales invoices, Accounts Receivable, or customer invoices. \
       ACCPAY is for purchase invoices, Accounts Payable invoices, supplier invoices, or bills. \
@@ -48,10 +70,25 @@ const CreateInvoiceTool = CreateXeroTool(
     reference: z.string().describe("A reference number for the invoice.").optional(),
     date: z.string().describe("The date the invoice was created (YYYY-MM-DD format).").optional(),
     dueDate: z.string().describe("The due date for the invoice (YYYY-MM-DD format).").optional(),
+    confirmation: z.boolean().describe("MUST be set to true to confirm that the user has reviewed all invoice details and wants to proceed with creating the invoice. \
+      This parameter enforces that confirmation is required before any invoice is created. \
+      Set to false if user has not confirmed or if you need to show details for confirmation first."),
   },
-  async ({ contactId, lineItems, type, reference, date ,dueDate }) => {
+  async ({ contactId, lineItems, type, reference, date, dueDate, confirmation }) => {
+    // Check if user has confirmed
+    if (!confirmation) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: "Invoice creation requires explicit confirmation. Please review the invoice details and confirm before proceeding.",
+          },
+        ],
+      };
+    }
+
     const xeroInvoiceType = type === "ACCREC" ? Invoice.TypeEnum.ACCREC : Invoice.TypeEnum.ACCPAY;
-    const result = await createXeroInvoice(contactId, lineItems, xeroInvoiceType, reference, date ,dueDate);
+    const result = await createXeroInvoice(contactId, lineItems, xeroInvoiceType, reference, date, dueDate);
     if (result.isError) {
       return {
         content: [
