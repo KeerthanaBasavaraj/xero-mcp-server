@@ -26,7 +26,25 @@ const lineItemSchema = z.object({
 
 const CreateInvoiceTool = CreateXeroTool(
   "create-invoice",
-  "Create an invoice in Xero.\
+  "Create an invoice in Xero. This tool supports creating invoices with line items that can either use existing items or be created with descriptions only.\
+         \
+         WORKFLOW:\
+         1. Ask user how they want to create the invoice:\
+            - Option A: Using line items (existing items or create new ones)\
+            - Option B: Using description only (provide description, quantity, price, etc.)\
+         \
+         2. For line items approach:\
+            - Ask if they want to use existing items or create new ones\
+            - If existing: Ask for item code or use list-items tool to show available items\
+            - If new: Use create-item tool to create the item first\
+         \
+         3. For description approach:\
+            - Collect description, quantity, unit amount, account code, and tax type directly\
+         \
+         4. Collect invoice details (contact ID, type, reference, dates)\
+         \
+         5. Show complete invoice details and ask for confirmation\
+         \
          When an invoice is created, a deep link to the invoice in Xero is returned. \
         This deep link can be used to view the invoice in Xero directly. \
         This link should be displayed to the user. \
@@ -39,8 +57,9 @@ const CreateInvoiceTool = CreateXeroTool(
   {
     contactId: z.string().describe("The ID of the contact to create the invoice for. \
       Can be obtained from the list-contacts tool."),
-      
-    lineItems: z.array(lineItemSchema),
+    lineItems: z.array(lineItemSchema).describe("Array of line items for the invoice. \
+      Each line item should include description, quantity, unit amount, account code, and tax type. \
+      If using existing items, include the itemCode. If creating with description only, omit itemCode."),
     type: z.enum(["ACCREC", "ACCPAY"]).describe("The type of invoice to create. \
       ACCREC is for sales invoices, Accounts Receivable, or customer invoices. \
       ACCPAY is for purchase invoices, Accounts Payable invoices, supplier invoices, or bills. \
@@ -49,9 +68,9 @@ const CreateInvoiceTool = CreateXeroTool(
     date: z.string().describe("The date the invoice was created (YYYY-MM-DD format).").optional(),
     dueDate: z.string().describe("The due date for the invoice (YYYY-MM-DD format).").optional(),
   },
-  async ({ contactId, lineItems, type, reference, date ,dueDate }) => {
+  async ({ contactId, lineItems, type, reference, date, dueDate }) => {
     const xeroInvoiceType = type === "ACCREC" ? Invoice.TypeEnum.ACCREC : Invoice.TypeEnum.ACCPAY;
-    const result = await createXeroInvoice(contactId, lineItems, xeroInvoiceType, reference, date ,dueDate);
+    const result = await createXeroInvoice(contactId, lineItems, xeroInvoiceType, reference, date, dueDate);
     if (result.isError) {
       return {
         content: [
