@@ -61,21 +61,28 @@ const PeriodicActualVsBudgetTool = CreateXeroTool(
 
     // Auto-calculate periods if not provided
     let periods = args.periods;
-    if (!periods && args.fromDate && args.toDate) {
-      const start = new Date(args.fromDate);
-      const end = new Date(args.toDate);
-      if (timeframe === "MONTH") {
-        periods =
-          (end.getFullYear() - start.getFullYear()) * 12 +
-          (end.getMonth() - start.getMonth()) +
-          1;
-      } else if (timeframe === "QUARTER") {
-        periods =
-          (end.getFullYear() - start.getFullYear()) * 4 +
-          (Math.floor(end.getMonth() / 3) - Math.floor(start.getMonth() / 3)) +
-          1;
-      } else if (timeframe === "YEAR") {
-        periods = end.getFullYear() - start.getFullYear() + 1;
+    if (!periods) {
+      // For period-specific comparison, we want 1 period by default
+      // If both dates are provided, calculate the actual periods needed
+      if (args.fromDate && args.toDate) {
+        const start = new Date(args.fromDate);
+        const end = new Date(args.toDate);
+        if (timeframe === "MONTH") {
+          periods =
+            (end.getFullYear() - start.getFullYear()) * 12 +
+            (end.getMonth() - start.getMonth()) +
+            1;
+        } else if (timeframe === "QUARTER") {
+          periods =
+            (end.getFullYear() - start.getFullYear()) * 4 +
+            (Math.floor(end.getMonth() / 3) - Math.floor(start.getMonth() / 3)) +
+            1;
+        } else if (timeframe === "YEAR") {
+          periods = end.getFullYear() - start.getFullYear() + 1;
+        }
+      } else {
+        // Default to 1 period for single period analysis
+        periods = 1;
       }
     }
 
