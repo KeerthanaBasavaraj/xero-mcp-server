@@ -7,9 +7,9 @@ import { Invoice } from "xero-node";
 
 const DownloadBillTool = CreateXeroTool(
   "download-bill",
-  "Download a bill (ACCPAY invoice) by its invoice reference. This tool searches for bills with the given reference and handles cases where multiple bills may have the same reference by asking the user which one to download.",
+  "Download a bill (ACCPAY invoice) by its invoice reference. This tool specifically searches for and downloads bills/ACCPAY invoices, not reports. Use this when you want to download a specific bill document.",
   {
-    invoiceReference: z.string().describe("The invoice reference of the bill to download. This is the reference field for ACCPAY invoices (bills) in Xero. For example: 'RPT', 'INV-001', etc."),
+    invoiceReference: z.string().describe("The invoice reference of the bill to download. This is the reference field for ACCPAY invoices (bills) in Xero. For example: 'RPT', 'INV-001', 'BILL-2024-001', etc. This should be the actual invoice reference, not a request for a report."),
     selectedInvoiceId: z.string().optional().describe("Optional: The specific invoice ID to download when multiple bills are found with the same reference. This should be provided when the tool returns multiple matching bills."),
   },
   async ({ invoiceReference, selectedInvoiceId }) => {
@@ -105,7 +105,13 @@ const DownloadBillTool = CreateXeroTool(
           content: [
             {
               type: "text" as const,
-              text: `No bills found with reference containing '${invoiceReference}'. Please check the reference and try again.`,
+              text: [
+                `No bills found with reference containing '${invoiceReference}'.`,
+                "",
+                "Note: This tool searches for bills (ACCPAY invoices), not reports. If you're looking for a business report, please use the appropriate report generation tool.",
+                "",
+                "Please check the reference and try again, or use a different tool if you need a report instead of a bill download.",
+              ].join("\n"),
             },
           ],
         };
