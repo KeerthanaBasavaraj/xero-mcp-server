@@ -29,6 +29,7 @@ import ListBudgetSummaryTool from "./list-budgets.tool.js";
 import ListXeroReceiptsTool from "./list-xero-receipts.tool.js";
 import ListXeroBillsTool from "./list-xero-bills.tool.js";
 import ListXeroReceivablesTool from "./list-xero-receivables.tool.js";
+import SearchBillsByReferenceTool from "./search-bills-by-reference.tool.js";
 
 
 export const ListTools = [
@@ -63,4 +64,5 @@ export const ListTools = [
   ListXeroReceiptsTool,
   ListXeroBillsTool,
   ListXeroReceivablesTool,
+  SearchBillsByReferenceTool,
 ];
