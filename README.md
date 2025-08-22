@@ -136,6 +136,8 @@ NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_
 - `add-payroll-timesheet-line`: Add new line on an existing Payroll Timesheet
 - `delete-payroll-timesheet`: Delete an existing Payroll Timesheet
 - `get-payroll-timesheet`: Retrieve an existing Payroll Timesheet
+- `download-invoice`: Download an invoice PDF by invoice ID
+- `download-bill`: Download a bill PDF by invoice reference (handles duplicate references)
 
 For detailed API documentation, please refer to the [MCP Protocol Specification](https://modelcontextprotocol.io/).
 
