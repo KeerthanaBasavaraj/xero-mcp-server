@@ -53,9 +53,10 @@ const PeriodicActualVsBudgetTool = CreateXeroTool(
 
     // Auto-calculate periods if not provided
     let periods = args.periods;
+    let start = new Date(fromDate);
+    let end = args.toDate ? new Date(args.toDate) : new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
     if (!periods && args.fromDate && args.toDate) {
-      const start = new Date(args.fromDate);
-      const end = new Date(args.toDate);
       if (timeframe === "MONTH") {
         periods =
           (end.getFullYear() - start.getFullYear()) * 12 +
@@ -71,57 +72,79 @@ const PeriodicActualVsBudgetTool = CreateXeroTool(
       }
     }
 
-    // === Fetch actuals ===
-    const actualResp = await listXeroProfitAndLoss(
-      fromDate,
-      undefined, // Intentionally omit toDate to avoid cumulative results
-      periods,
-      timeframe,
-      true,
-      args.paymentsOnly,
-    );
-    if (actualResp.isError) {
+    // Helper to get period start/end dates
+    function getPeriodRange(idx: number) {
+      let periodStart = new Date(start);
+      let periodEnd = new Date(start);
+      if (timeframe === "MONTH") {
+        periodStart.setMonth(start.getMonth() + idx);
+        periodEnd = new Date(periodStart.getFullYear(), periodStart.getMonth() + 1, 0);
+      } else if (timeframe === "QUARTER") {
+        periodStart.setMonth(start.getMonth() + idx * 3);
+        periodEnd = new Date(periodStart.getFullYear(), periodStart.getMonth() + 3, 0);
+      } else if (timeframe === "YEAR") {
+        periodStart.setFullYear(start.getFullYear() + idx);
+        periodEnd = new Date(periodStart.getFullYear(), 11, 31);
+      }
       return {
-        content: [
-          {
-            type: "text" as const,
-            text: `Error fetching actuals: ${actualResp.error}`,
-          },
-        ],
+        from: periodStart.toISOString().slice(0, 10),
+        to: periodEnd.toISOString().slice(0, 10),
+        label: timeframe === "MONTH"
+          ? `${periodStart.getFullYear()}-${String(periodStart.getMonth() + 1).padStart(2, "0")}`
+          : timeframe === "QUARTER"
+          ? `Q${Math.floor(periodStart.getMonth() / 3) + 1} ${periodStart.getFullYear()}`
+          : `${periodStart.getFullYear()}`
       };
     }
-    const actualReport = actualResp.result;
 
-    // === Fetch budget ===
-    const budgetResp = await listXeroBudgetSummary(
-      fromDate,
-      periods,
-      timeframe === "YEAR" ? "YEAR" : "MONTH",
-    );
-    if (budgetResp.isError) {
-      return {
-        content: [
-          {
-            type: "text" as const,
-            text: `Error fetching budget: ${budgetResp.error}`,
-          },
-        ],
-      };
+    const results: Array<{ period: string; actual: number | null; budgeted: number | null }> = [];
+
+    for (let i = 0; i < (periods || 1); i++) {
+      const { from, to, label } = getPeriodRange(i);
+
+      // Fetch actuals for this period
+      const actualResp = await listXeroProfitAndLoss(
+        from,
+        to,
+        1,
+        timeframe,
+        true,
+        args.paymentsOnly,
+      );
+      let actualValue: number | null = null;
+      if (!actualResp.isError && actualResp.result) {
+        const section = actualResp.result.rows?.find(
+          (row: any) => row.title?.toLowerCase() === args.metric.toLowerCase()
+        );
+        actualValue = section?.cells?.[0]?.value ?? null;
+      }
+
+      // Fetch budget for this period
+      const budgetResp = await listXeroBudgetSummary(
+        from,
+        1,
+        timeframe === "YEAR" ? "YEAR" : "MONTH",
+      );
+      let budgetValue: number | null = null;
+      if (!budgetResp.isError && budgetResp.result?.[0]) {
+        const section = budgetResp.result[0].rows?.find(
+          (row: any) => row.title?.toLowerCase() === args.metric.toLowerCase()
+        );
+        budgetValue = section?.cells?.[0]?.value ?? null;
+      }
+
+      results.push({
+        period: label,
+        actual: actualValue,
+        budgeted: budgetValue,
+      });
     }
-    const budgetReport = budgetResp.result?.[0];
 
     return {
       content: [
         {
           type: "text" as const,
-          text: JSON.stringify(
-            {
-              actual: actualReport,
-              budgeted: budgetReport,
-            },
-            null,
-            2,
-          ),
+          text: JSON.stringify(results, null, 2),
         },
       ],
     };
