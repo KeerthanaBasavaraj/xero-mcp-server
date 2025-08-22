@@ -49,6 +49,14 @@ const PeriodicActualVsBudgetTool = CreateXeroTool(
     const now = new Date();
     const defaultFrom = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
     const fromDate = args.fromDate || defaultFrom;
+    
+    // Calculate default toDate if not provided
+    let toDate = args.toDate;
+    if (!toDate) {
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      toDate = endOfMonth.toISOString().split('T')[0];
+    }
+    
     const timeframe = args.timeframe || "MONTH";
 
     // Auto-calculate periods if not provided
@@ -74,7 +82,7 @@ const PeriodicActualVsBudgetTool = CreateXeroTool(
     // === Fetch actuals ===
     const actualResp = await listXeroProfitAndLoss(
       fromDate,
-      undefined, // Intentionally omit toDate to avoid cumulative results
+      toDate, // Use the calculated toDate to avoid cumulative results
       periods,
       timeframe,
       true,
