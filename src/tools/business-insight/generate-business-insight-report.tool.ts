@@ -51,7 +51,7 @@ class ConcurrencyLimiter {
 }
 
 export default CreateXeroTool(
-  "generateBusinessInsightReportRaw",
+  "generate-business-insight-report-raw",
   "Fetches all raw data needed for a business insight report for a selected month.",
   {
     month: z.string().describe("Month in YYYY-MM format"),
