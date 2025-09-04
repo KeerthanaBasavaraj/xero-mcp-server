@@ -17,13 +17,7 @@ const salesDetailsSchema = z.object({
 const CreateItemTool = CreateXeroTool(
   "create-item",
   "Create an item in Xero.\
-  IMPORTANT: Before creating an item, you MUST ask the user for confirmation with the exact details of the item to be created. \
-  Show them the code, name, description, purchase description, purchase details, sales details, is tracked as inventory, and inventory asset account code, then ask 'Do you want to proceed with creating this item?' \
-  'Do NOT suggest specific words or phrases for confirmation or cancellation.'\
-  Only proceed after receiving explicit confirmation from the user. \
-  RE-CONFIRMATION: If the operation was previously declined but the user later indicates they want to proceed, you MUST re-confirm by showing the same resource details again and asking: 'Please confirm the item details once more before proceeding: [show details]. Do you want to proceed with creating this item?' \
-  Only proceed if the user confirms again. \
-  IMPORTANT: When asking for confirmation, ask directly without saying 'Let me ask for your confirmation' or similar phrases. Just ask the question directly.",
+  Always show details and get confirmation before creating. If declined earlier, show again and reconfirm.",
   {
     code: z.string().describe("The unique code for the item"),
     name: z.string().describe("The name of the item"),

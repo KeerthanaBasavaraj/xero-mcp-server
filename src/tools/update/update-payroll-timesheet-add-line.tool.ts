@@ -11,12 +11,7 @@ import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
         const AddTimesheetLineTool = CreateXeroTool(
           "add-timesheet-line",
           `Add a new timesheet line to an existing payroll timesheet in Xero.\
-          IMPORTANT: Before adding a timesheet line, you MUST ask the user for confirmation with the exact details of the timesheet line to be added. \
-          Show them the timesheet ID and timesheet line details (earnings rate ID, number of units, date), then ask 'Do you want to proceed with adding this timesheet line?' \
-          'Do NOT suggest specific words or phrases for confirmation or cancellation.'\
-          Only proceed after receiving explicit confirmation from the user. \
-          RE-CONFIRMATION: If the operation was previously declined but the user later indicates they want to proceed, you MUST re-confirm by showing the same resource details again and asking: 'Please confirm the timesheet line details once more before proceeding: [show details]. Do you want to proceed with adding this timesheet line?' \
-          Only proceed if the user confirms again.`,
+          Always show details and get confirmation before creating. If declined earlier, show again and reconfirm.`,
   {
     timesheetID: z.string().describe("The ID of the timesheet to update."),
     timesheetLine: z.object({

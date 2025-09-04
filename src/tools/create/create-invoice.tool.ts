@@ -51,12 +51,7 @@ const CreateInvoiceTool = CreateXeroTool(
          When an invoice is created, a deep link to the invoice in Xero is returned. \
         This deep link can be used to view the invoice in Xero directly. \
         This link should be displayed to the user. \
-        IMPORTANT: Before creating ** EVERY ** invoice, you MUST ask the user for confirmation with the exact details of the invoice to be created. \
-        Show them the contact ID, line items (description, quantity, unit amount, account code, tax type), invoice type, reference, date, and due date, then ask 'Do you want to proceed with creating this invoice?' \
-        'Do NOT suggest specific words or phrases for confirmation or cancellation.'\
-        Only proceed after receiving explicit confirmation from the user. \
-        RE-CONFIRMATION: If the operation was previously declined but the user later indicates they want to proceed, you MUST re-confirm by showing the same resource details again and asking: 'Please confirm the invoice details once more before proceeding: [show details]. Do you want to proceed with creating this invoice?' \
-        Only proceed if the user confirms again.",
+        Always show details and get confirmation before creating. If declined earlier, show again and reconfirm.",
   {
     contactId: z.string().describe("The ID of the contact to create the invoice for. \
       Can be obtained from the list-contacts tool. Fetch details but do not show them complete details to the user, just say let user know you found the contact"),
