@@ -1,19 +1,15 @@
 import { xeroClient } from "../clients/xero-client.js";
 import {
   contactDeepLink,
-  creditNoteDeepLink,
   invoiceDeepLink,
   paymentDeepLink,
-  manualJournalDeepLink,
   quoteDeepLink,
   billDeepLink,
 } from "../consts/deeplinks.js";
 
 export enum DeepLinkType {
   CONTACT,
-  CREDIT_NOTE,
   INVOICE,
-  MANUAL_JOURNAL,
   QUOTE,
   PAYMENT,
   BILL,
@@ -36,10 +32,6 @@ export const getDeepLink = async (type: DeepLinkType, itemId: string) => {
   switch (type) {
     case DeepLinkType.CONTACT:
       return contactDeepLink(orgShortCode, itemId);
-    case DeepLinkType.CREDIT_NOTE:
-      return creditNoteDeepLink(orgShortCode, itemId);
-    case DeepLinkType.MANUAL_JOURNAL:
-      return manualJournalDeepLink(itemId);
     case DeepLinkType.INVOICE:
       return invoiceDeepLink(orgShortCode, itemId);
     case DeepLinkType.QUOTE:

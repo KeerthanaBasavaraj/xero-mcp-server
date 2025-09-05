@@ -11,12 +11,7 @@ const ArchiveContactTool = CreateXeroTool(
            When a contact is archived, a deep link to the contact in Xero is returned. 
         This deep link can be used to view the contact in Xero directly. 
         This link should be displayed to the user.
-        IMPORTANT: Before archiving a contact, you MUST ask the user for confirmation with the exact details of the contact to be archived. \
-        Show them the contact ID and contact name, then ask 'Do you want to proceed with archiving this contact?' \
-        'Do NOT suggest specific words or phrases for confirmation or cancellation.'\
-        Only proceed after receiving explicit confirmation from the user. \
-        RE-CONFIRMATION: If the operation was previously declined but the user later indicates they want to proceed, you MUST re-confirm by showing the same resource details again and asking: 'Please confirm the contact archiving once more before proceeding: [show details]. Do you want to proceed with archiving this contact?' \
-        Only proceed if the user confirms again.`,
+        Always show details and get confirmation before creating. If declined earlier, show again and reconfirm.`,
   {
     contactId: z.string().describe("The ID of the contact to archive."),
   },

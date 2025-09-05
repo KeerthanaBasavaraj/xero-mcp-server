@@ -95,7 +95,6 @@ NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_
 
 - `list-accounts`: Retrieve a list of accounts
 - `list-contacts`: Retrieve a list of contacts from Xero
-- `list-credit-notes`: Retrieve a list of credit notes
 - `list-invoices`: Retrieve a list of invoices
 - `list-items`: Retrieve a list of items
 - `list-organisation-details`: Retrieve details about an organisation
@@ -120,16 +119,13 @@ NOTE: The `XERO_CLIENT_BEARER_TOKEN` will take precedence over the `XERO_CLIENT_
 - `list-xero-bills`: Retrieve a list of bills (purchase invoices) with optional status filtering
 - `list-xero-receivables`: Retrieve a list of receivables (sales invoices) with optional status filtering
 - `create-contact`: Create a new contact
-- `create-credit-note`: Create a new credit note
 - `create-invoice`: Create a new invoice
 - `create-payment`: Create a new payment
 - `create-quote`: Create a new quote
-- `create-credit-note`: Create a new credit note
 - `create-payroll-timesheet`: Create a new Payroll Timesheet
 - `update-contact`: Update an existing contact
 - `update-invoice`: Update an existing draft invoice
 - `update-quote`: Update an existing draft quote
-- `update-credit-note`: Update an existing draft credit note
 - `update-payroll-timesheet-line`: Update a line on an existing Payroll Timesheet
 - `approve-payroll-timesheet`: Approve a Payroll Timesheet
 - `revert-payroll-timesheet`: Revert an approved Payroll Timesheet
