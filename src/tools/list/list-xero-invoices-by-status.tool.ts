@@ -2,11 +2,11 @@ import { listXeroReceipts } from "../../handlers/list-xero-receipts.handler.js";
 import { CreateXeroTool } from "../../helpers/create-xero-tool.js";
 import { z } from "zod";
 
-const ListXeroReceiptsTool = CreateXeroTool(
-  "list-xero-receipts",
-  "List all receipts in Xero. A receipt is any paid invoice. Use this tool if the user asks to 'show me receipts', 'list paid invoices', 'show sales receipts', or similar. By default shows both paid sales invoices (ACCREC) and paid purchase invoices (ACCPAY). For specific types, use 'list-xero-receivables' for sales invoices only or 'list-xero-bills' for purchase invoices only. Show invoice number, contact name, date, total, amount due, and status. Do not include internal IDs unless explicitly requested. If there are more than 10 then show user and ask there are more do you want to see more?",
+const ListXeroInvoicesByStatusTool = CreateXeroTool(
+  "list-xero-invoices-by-status",
+  "List invoices in Xero filtered by status. This tool can fetch invoices with any status (PAID, AUTHORISED, DRAFT, SUBMITTED, VOIDED, DELETED) and any type (ACCREC for sales invoices, ACCPAY for purchase invoices/bills). Use this tool when the user wants to see invoices with a specific status like 'show me draft invoices', 'list paid invoices', 'show me submitted bills', etc. Show invoice number, contact name, date, total, amount due, and status. Do not include internal IDs unless explicitly requested. If there are more than 10 then show user and ask if there are more do you want to see more?",
   {
-    page: z.number().optional().describe("Optional page number for pagination. If not provided, the first page will be returned. If 100 receipts are returned, call this tool again with the next page number."),
+    page: z.number().optional().describe("Optional page number for pagination. If not provided, the first page will be returned. If 100 invoices are returned, call this tool again with the next page number."),
     type: z.enum(["all", "ACCREC", "ACCPAY"]).optional().describe("Filter by invoice type: 'all' for both sales and purchase invoices (default), 'ACCREC' for sales invoices only, 'ACCPAY' for purchase invoices/bills only."),
     status: z.enum(["PAID", "AUTHORISED", "DRAFT", "SUBMITTED", "VOIDED", "DELETED"]).optional().describe("Filter by invoice status. If not provided, shows invoices with PAID status (default)."),
   },
@@ -19,23 +19,23 @@ const ListXeroReceiptsTool = CreateXeroTool(
         content: [
           {
             type: "text" as const,
-            text: `Error listing receipts: ${response.error}`,
+            text: `Error listing invoices: ${response.error}`,
           },
         ],
       };
     }
 
-    const receipts = response.result || [];
-    const typeDescription = type === "all" ? "receipts" : type === "ACCREC" ? "sales invoices" : "purchase invoices/bills";
+    const invoices = response.result || [];
+    const typeDescription = type === "all" ? "invoices" : type === "ACCREC" ? "sales invoices" : "purchase invoices/bills";
     const statusDescription = status ? ` with status ${status}` : "";
     
     return {
       content: [
         {
           type: "text" as const,
-          text: `Found ${receipts.length} ${typeDescription}${statusDescription}${page ? ` (page ${page})` : ''}:`,
+          text: `Found ${invoices.length} ${typeDescription}${statusDescription}${page ? ` (page ${page})` : ''}:`,
         },
-        ...receipts.map((inv) => ({
+        ...invoices.map((inv) => ({
           type: "text" as const,
           text: [
             `Invoice Number: ${inv.invoiceNumber}`,
@@ -53,4 +53,4 @@ const ListXeroReceiptsTool = CreateXeroTool(
   },
 );
 
-export default ListXeroReceiptsTool;
+export default ListXeroInvoicesByStatusTool;

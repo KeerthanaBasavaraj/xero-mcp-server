@@ -26,7 +26,7 @@ import ListTrialBalanceTool from "./list-trial-balance.tool.js";
 import ListContactGroupsTool from "./list-contact-groups.tool.js";
 import ListAttachmentsTool from "./list-attachments.tool.js";
 import ListBudgetSummaryTool from "./list-budgets.tool.js";
-import ListXeroReceiptsTool from "./list-xero-receipts.tool.js";
+import ListXeroInvoicesByStatusTool from "./list-xero-invoices-by-status.tool.js";
 import ListXeroBillsTool from "./list-xero-bills.tool.js";
 import ListXeroReceivablesTool from "./list-xero-receivables.tool.js";
 
@@ -60,7 +60,7 @@ export const ListTools = [
   ListTrackingCategoriesTool,
   ListAttachmentsTool,
   ListBudgetSummaryTool,
-  ListXeroReceiptsTool,
+  ListXeroInvoicesByStatusTool,
   ListXeroBillsTool,
   ListXeroReceivablesTool,
 ];
